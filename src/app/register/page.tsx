@@ -155,7 +155,7 @@ export default function Registration() {
 
       {/* Popup de succès */}
       {showSuccessPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
+        <div className="fixed inset-0 flex justify-center items-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
             <h3 className="text-green-500 text-xl font-semibold mb-5">
               Inscription réussie !
