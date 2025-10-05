@@ -35,7 +35,16 @@ const authOptions = {
           return {
             id: user._id.toString(),
             email: user.email,
-            name: user.name
+            name: user.name,
+            profileImage: user.profileImage,
+            mobileNo: user.mobileNo,
+            address: user.address,
+            nationality: user.nationality,
+            dateOfBirth: user.dateOfBirth,
+            gender: user.gender,
+            profileCompletion: user.profileCompletion,
+            emailVerified: user.emailVerified,
+            mobileVerified: user.mobileVerified
           };
         } catch (error) {
           console.error("Auth error:", error);
@@ -56,12 +65,30 @@ const authOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.profileImage = user.profileImage;
+        token.mobileNo = user.mobileNo;
+        token.address = user.address;
+        token.nationality = user.nationality;
+        token.dateOfBirth = user.dateOfBirth;
+        token.gender = user.gender;
+        token.profileCompletion = user.profileCompletion;
+        token.emailVerified = user.emailVerified;
+        token.mobileVerified = user.mobileVerified;
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id;
+        session.user.profileImage = token.profileImage;
+        session.user.mobileNo = token.mobileNo;
+        session.user.address = token.address;
+        session.user.nationality = token.nationality;
+        session.user.dateOfBirth = token.dateOfBirth;
+        session.user.gender = token.gender;
+        session.user.profileCompletion = token.profileCompletion;
+        session.user.emailVerified = token.emailVerified;
+        session.user.mobileVerified = token.mobileVerified;
       }
       return session;
     }

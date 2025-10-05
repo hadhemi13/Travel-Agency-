@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen bg-gray-950 pt-20 pb-32">
+    <section className="relative min-h-screen bg-gray-950 dark:bg-gray-900 pt-20 pb-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Side - Text Content */}
@@ -25,7 +25,7 @@ export default function Hero() {
               </span>
             </h1>
 
-            <p className="text-xl text-gray-400">
+            <p className="text-xl text-gray-400 dark:text-gray-300">
               We bring you not only a stay option, but an experience in your
               budget to enjoy the luxury.
             </p>
@@ -36,7 +36,7 @@ export default function Hero() {
               </button>
               <Link
                 href="https://www.youtube.com/embed/tXHviS-4ygo"
-                className="flex items-center gap-3 text-gray-300 hover:text-white transition"
+                className="flex items-center gap-3 text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition"
               >
                 <div className="relative w-12 h-12">
                   <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
@@ -61,7 +61,7 @@ export default function Hero() {
             </div>
 
             {/* 24/7 Support Badge */}
-            <div className="absolute top-0 right-0 -mt-4 -mr-4 bg-gray-900/90 backdrop-blur-sm border border-gray-800 rounded-2xl p-4 text-center shadow-2xl">
+            <div className="absolute top-0 right-0 -mt-4 -mr-4 bg-gray-900/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-800 dark:border-gray-700 rounded-2xl p-4 text-center shadow-2xl">
               <div className="w-12 h-12 mx-auto mb-2 bg-red-500/10 rounded-full flex items-center justify-center">
                 <svg
                   className="w-6 h-6 text-red-500"
@@ -78,19 +78,19 @@ export default function Hero() {
                 </svg>
               </div>
               <h5 className="text-white font-bold text-lg">24 / 7</h5>
-              <p className="text-gray-400 text-sm">Guide Supports</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm">Guide Supports</p>
             </div>
           </div>
         </div>
 
         {/* Search Bar */}
         <div className="relative -mb-16 mt-16 max-w-5xl mx-auto">
-          <div className="bg-gray-900 shadow-2xl rounded-3xl p-6 border border-gray-800">
+          <div className="bg-gray-900 dark:bg-gray-800 shadow-2xl rounded-3xl p-6 border border-gray-800 dark:border-gray-700">
             <h6 className="text-white text-lg font-semibold mb-4">
               Check Availability
             </h6>
             <div className="grid md:grid-cols-3 gap-4">
-              <div className="flex items-center gap-3 p-4 bg-gray-800 rounded-lg">
+              <div className="flex items-center gap-3 p-4 bg-gray-800 dark:bg-gray-700 rounded-lg">
                 <svg
                   className="w-8 h-8 text-gray-400"
                   fill="none"
@@ -111,18 +111,18 @@ export default function Hero() {
                   />
                 </svg>
                 <div className="flex-1">
-                  <label className="block text-xs text-gray-400 mb-1">
+                  <label className="block text-xs text-gray-400 dark:text-gray-500 mb-1">
                     Location
                   </label>
                   <input
                     type="text"
                     placeholder="San Jacinto, USA"
-                    className="w-full bg-transparent text-white outline-none"
+                    className="w-full bg-transparent text-white dark:text-gray-100 outline-none"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-4 bg-gray-800 rounded-lg">
+              <div className="flex items-center gap-3 p-4 bg-gray-800 dark:bg-gray-700 rounded-lg">
                 <svg
                   className="w-8 h-8 text-gray-400"
                   fill="none"
@@ -137,18 +137,18 @@ export default function Hero() {
                   />
                 </svg>
                 <div className="flex-1">
-                  <label className="block text-xs text-gray-400 mb-1">
+                  <label className="block text-xs text-gray-400 dark:text-gray-500 mb-1">
                     Check in - out
                   </label>
                   <input
                     type="text"
                     placeholder="04 Oct to 09 Oct"
-                    className="w-full bg-transparent text-white outline-none"
+                    className="w-full bg-transparent text-white dark:text-gray-100 outline-none"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-4 bg-gray-800 rounded-lg">
+              <div className="flex items-center gap-3 p-4 bg-gray-800 dark:bg-gray-700 rounded-lg">
                 <svg
                   className="w-8 h-8 text-gray-400"
                   fill="none"
@@ -163,19 +163,22 @@ export default function Hero() {
                   />
                 </svg>
                 <div className="flex-1">
-                  <label className="block text-xs text-gray-400 mb-1">
+                  <label className="block text-xs text-gray-400 dark:text-gray-500 mb-1">
                     Guests & rooms
                   </label>
                   <input
                     type="text"
                     placeholder="2 Adults 1 Room"
-                    className="w-full bg-transparent text-white outline-none"
+                    className="w-full bg-transparent text-white dark:text-gray-100 outline-none"
                   />
                 </div>
               </div>
             </div>
 
-            <button className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 rounded-full flex items-center justify-center shadow-xl transition">
+            <button
+              className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 rounded-full flex items-center justify-center shadow-xl transition"
+              aria-label="Rechercher des hôtels"
+            >
               <svg
                 className="w-6 h-6 text-white"
                 fill="none"
