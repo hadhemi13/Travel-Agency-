@@ -6,9 +6,10 @@ export async function GET() {
   try {
     await connectToDatabase();
     const hotels = await Hotel.find({ featured: true }).limit(4);
-    return NextResponse.json({ hotels, status: 200 });
+    // Retourner directement le tableau d'hôtels
+    return NextResponse.json(hotels);
   } catch (error) {
     console.error("Error fetching hotels:", error);
-    return NextResponse.json({ error: "Error fetching hotels", status: 500 }, { status: 500 });
+    return NextResponse.json({ error: "Error fetching hotels" }, { status: 500 });
   }
 }

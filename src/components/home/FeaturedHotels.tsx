@@ -27,7 +27,7 @@ const FeaturedHotels = () => {
   useEffect(() => {
     const fetchHotels = async () => {
       try {
-        const res = await fetch("/api/hotels/featured");
+        const res = await fetch("/api/hotels");
         const data: Hotel[] = await res.json();
         setHotels(data);
       } catch (err) {
@@ -67,7 +67,7 @@ const FeaturedHotels = () => {
               >
                 {/* Image */}
                 <div className="relative overflow-hidden rounded-3xl">
-                  <Image
+                  <img
                     src={hotel.image}
                     alt={hotel.name}
                     width={500}
