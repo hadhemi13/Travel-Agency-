@@ -42,7 +42,7 @@ const FeaturedHotels = () => {
   if (loading) {
     return (
       <section className="py-12">
-        <div className="container mx-auto px-4 text-center text-gray-500">
+        <div className="container mx-auto px-4 text-center text-gray-500 dark:text-gray-400">
           Loading featured hotels...
         </div>
       </section>
@@ -53,17 +53,17 @@ const FeaturedHotels = () => {
     <section className="py-12">
       <div className="container mx-auto px-4">
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-semibold">Featured Hotels</h2>
+          <h2 className="text-3xl font-semibold text-white dark:text-gray-100">Featured Hotels</h2>
         </div>
 
         {hotels.length === 0 ? (
-          <p className="text-center text-gray-500">No featured hotels found.</p>
+          <p className="text-center text-gray-500 dark:text-gray-400">No featured hotels found.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
             {hotels.map((hotel) => (
               <div
                 key={hotel._id}
-                className="bg-white overflow-hidden rounded-3xl shadow hover:shadow-lg transition-shadow group"
+                className="bg-white dark:bg-gray-800 overflow-hidden rounded-3xl shadow hover:shadow-lg transition-shadow group"
               >
                 {/* Image */}
                 <div className="relative overflow-hidden rounded-3xl">
@@ -84,10 +84,10 @@ const FeaturedHotels = () => {
 
                 {/* Info */}
                 <div className="p-4">
-                  <h5 className="text-lg font-semibold mb-2">
+                  <h5 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
                     <Link
                       href={`/hotels/${hotel._id}`}
-                      className="hover:text-blue-600 transition-colors"
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     >
                       {hotel.name}
                     </Link>
@@ -97,12 +97,12 @@ const FeaturedHotels = () => {
                     <h6 className="text-green-600 font-medium">
                       {"$"}
                       {hotel.price}
-                      <small className="ml-1 text-gray-500 font-light">
+                      <small className="ml-1 text-gray-500 dark:text-gray-400 font-light">
                         /starting at
                       </small>
                     </h6>
 
-                    <h6 className="flex items-center text-gray-700">
+                    <h6 className="flex items-center text-gray-700 dark:text-gray-300">
                       {hotel.rating.toFixed(1)}
                       <FaStar size={18} className="text-yellow-400 ml-1" />
                     </h6>

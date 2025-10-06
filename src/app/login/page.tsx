@@ -84,7 +84,7 @@ export default function Login() {
                       <span>Remember me?</span>
                     </label>
                     <Link
-                      href="/forgot-password"
+                      href="/forget-pass"
                       className="text-indigo-500 hover:text-indigo-400 transition"
                     >
                       Forgot password?
