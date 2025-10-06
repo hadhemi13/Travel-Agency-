@@ -1,0 +1,31 @@
+
+// Custom - React
+
+.arrow-none {
+  &:after {
+    display: none !important;
+  }
+
+  &:before {
+    display: none !important;
+  }
+}
+
+.flex-centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.items-center {
+  display: flex;
+  align-items: center;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.choices__item.choices__item--selectable[data-value="-1"]{
+  @extend .choices__placeholder;
+}
