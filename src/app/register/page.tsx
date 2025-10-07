@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { FaFacebookF } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
+import { FaEye, FaEyeSlash } from "react-icons/fa6";
 
 export default function Registration() {
   const [name, setName] = useState("");
@@ -17,7 +18,8 @@ export default function Registration() {
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [keepSignedIn, setKeepSignedIn] = useState(false);
-  
+  const [showPassword, setShowPassword] = useState(false);
+const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   // Votre logique de validation actuelle
   const hasMinLength = password.length >= 8;
   const hasLetters = /[a-zA-Z]/.test(password);
@@ -279,7 +281,7 @@ export default function Registration() {
                   {/* Email Input */}
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Enter email id
+                      Enter your email 
                     </label>
                     <input
                       type="email"
@@ -304,17 +306,27 @@ export default function Registration() {
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       Enter password
                     </label>
-                    <input
-                      type="password"
-                      placeholder="••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className={`w-full px-4 py-3 bg-gray-800 border ${
-                        isFieldInvalid("password")
-                          ? "border-red-500"
-                          : "border-gray-700"
-                      } rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition`}
-                    />
+              <div className="relative">
+    <input
+      type={showPassword ? "text" : "password"}
+      placeholder="••••••"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      className={`w-full px-4 py-3 bg-gray-800 border ${
+        isFieldInvalid("password")
+          ? "border-red-500"
+          : "border-gray-700"
+      } rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition pr-11`}
+    />
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition focus:outline-none"
+    >
+      {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+    </button>
+  </div>
+
                     {password.length > 0 &&
                       (!hasMinLength || !hasLetters || !hasNumbers) && (
                         <div className="mt-1 text-sm space-y-1">
@@ -338,17 +350,26 @@ export default function Registration() {
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       Confirm password
                     </label>
-                    <input
-                      type="password"
-                      placeholder="••••••"
-                      value={confirmpassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className={`w-full px-4 py-3 bg-gray-800 border ${
-                        isFieldInvalid("confirmpassword")
-                          ? "border-red-500"
-                          : "border-gray-700"
-                      } rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition`}
-                    />
+               <div className="relative">
+    <input
+      type={showConfirmPassword ? "text" : "password"}
+      placeholder="••••••"
+      value={confirmpassword}
+      onChange={(e) => setConfirmPassword(e.target.value)}
+      className={`w-full px-4 py-3 bg-gray-800 border ${
+        isFieldInvalid("confirmpassword")
+          ? "border-red-500"
+          : "border-gray-700"
+      } rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition pr-11`}
+    />
+    <button
+      type="button"
+      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition focus:outline-none"
+    >
+      {showConfirmPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+    </button>
+  </div>
                     {confirmpassword.length > 0 && !passwordsMatch && (
                       <p className="mt-1 text-sm text-gray-400">
                         ✓ Les mots de passe doivent être identiques

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft, EyeOff, Eye } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -12,6 +12,7 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+const [showNewPassword, setShowNewPassword] = useState(false);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,15 +190,24 @@ const ForgotPassword = () => {
                       <label className="block text-sm font-semibold text-gray-300 mb-2">
                         Nouveau mot de passe
                       </label>
-                      <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        required
-                        minLength={6}
-                        className="block w-full px-4 py-3 border border-gray-700 bg-gray-800 text-white rounded-xl focus:ring-2 focus:ring-indigo-500"
-                        placeholder="••••••"
-                      />
+                   <div className="relative">
+    <input
+      type={showNewPassword ? "text" : "password"}
+      value={newPassword}
+      onChange={(e) => setNewPassword(e.target.value)}
+      required
+      minLength={6}
+      className="block w-full px-4 py-3 pr-11 border border-gray-700 bg-gray-800 text-white rounded-xl focus:ring-2 focus:ring-indigo-500"
+      placeholder="••••••"
+    />
+    <button
+      type="button"
+      onClick={() => setShowNewPassword(!showNewPassword)}
+      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition focus:outline-none"
+    >
+      {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+    </button>
+  </div>
                     </div>
 
                     <button
@@ -215,7 +225,7 @@ const ForgotPassword = () => {
                       onClick={() => setStep("email")}
                       className="w-full text-sm text-gray-400 hover:text-gray-200 font-medium"
                     >
-                      Retour à l'e-mail
+Retour à l&apos;e-mail
                     </button>
                   </form>
                 )}
