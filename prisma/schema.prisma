@@ -12,4 +12,295 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email         String    @unique @db.VarChar(255)
+  passwordHash  String    @map("password_hash") @db.VarChar(255)
+  nom           String    @db.VarChar(100)
+  prenom        String?   @db.VarChar(100)
+  role          String    @default("user") @db.VarChar(20)
+  
+  telephone     String?   @db.VarChar(20)
+  adresse       String?   @db.Text
+  avatarUrl     String?   @map("avatar_url") @db.Text
+  
+  resetToken    String?   @map("reset_token") @db.VarChar(255)
+  resetExpires  DateTime? @map("reset_expires") @db.Timestamptz(6)
+  emailVerified Boolean   @default(false) @map("email_verified")
+  
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  // Relations
+  voyages       Voyage[]
+  reservations  Reservation[]
+  paiements     Paiement[]
+  publications  Publication[]
+  comparaisons  Comparaison[]
+  
+  @@map("users")
+}
+
+
+model Destination {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nom               String   @db.VarChar(255)
+  pays              String   @db.VarChar(100)
+  ville             String?  @db.VarChar(100)
+  description       String?  @db.Text
+  imagePrincipale   String?  @map("image_principale") @db.Text
+  
+  images            String[] @db.Text
+  
+  popularite        Int      @default(0)
+  climat            String?  @db.VarChar(50)
+  meilleureSaison   String?  @map("meilleure_saison") @db.VarChar(100)
+  
+  prixEstimatif     Json     @default("{}") @map("prix_estimatif") @db.JsonB
+  
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  
+  // Relations
+  hotels            Hotel[]
+  activites         Activite[]
+  voyages           Voyage[]
+  offres            Offre[]
+  
+  @@map("destinations")
+}
+
+model Hotel {
+  id                    String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  destinationId         String      @map("destination_id") @db.Uuid
+  nom                   String      @db.VarChar(255)
+  adresse               String      @db.Text
+  etoiles               Int?
+  rating                Float       @default(0) @db.Real 
+  chambresDisponibles   Json        @default("[]") @map("chambres_disponibles") @db.JsonB
+  
+  prixMin               Decimal     @map("prix_min") @db.Decimal(10, 2)
+  prixMax               Decimal     @map("prix_max") @db.Decimal(10, 2)
+  
+  description           String?     @db.Text
+  images                String[]    @db.Text
+  equipements           String[]    @db.Text
+  
+  gamme                 String?     @db.VarChar(20)
+   featured              Boolean     @default(false) 
+  active                Boolean     @default(true)
+  createdAt             DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  
+  // Relations
+  destination           Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  reservations          Reservation[]
+  
+  @@map("hotels")
+  @@index([destinationId])
+  @@index([gamme])
+}
+
+
+model Activite {
+  id                String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  destinationId     String      @map("destination_id") @db.Uuid
+  nom               String      @db.VarChar(255)
+  description       String?     @db.Text
+  prix              Decimal     @db.Decimal(10, 2)
+  duree             String?     @db.VarChar(50)
+  
+  categories        String[]    @db.Text
+  typeVoyage        String?     @map("type_voyage") @db.VarChar(50)
+  
+  images            String[]    @db.Text
+  popularite        Int         @default(0)
+  
+  niveauDifficulte  String?     @map("niveau_difficulte") @db.VarChar(20)
+  ageMinimum        Int?        @map("age_minimum")
+  
+  active            Boolean     @default(true)
+  createdAt         DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  
+  // Relations
+  destination       Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  
+  @@map("activites")
+  @@index([destinationId])
+}
+
+model Voyage {
+  id                   String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String      @map("user_id") @db.Uuid
+  destinationId        String?     @map("destination_id") @db.Uuid
+  
+  titre                String      @db.VarChar(255)
+  description          String?     @db.Text
+  dateDebut            DateTime    @map("date_debut") @db.Date
+  dateFin              DateTime    @map("date_fin") @db.Date
+  nbPersonnes          Int         @default(1) @map("nb_personnes")
+  
+  budgetInitial        Decimal     @map("budget_initial") @db.Decimal(10, 2)
+  typeVoyage           String?     @map("type_voyage") @db.VarChar(50)
+  gamme                String?     @db.VarChar(20)
+  
+  programmeJournalier  Json        @default("[]") @map("programme_journalier") @db.JsonB
+  budgetRepartition    Json        @default("{}") @map("budget_repartition") @db.JsonB
+  
+  prixTotal            Decimal     @default(0) @map("prix_total") @db.Decimal(10, 2)
+  
+  statut               String      @default("brouillon") @db.VarChar(50)
+  
+  isFavori             Boolean     @default(false) @map("is_favori")
+  partage              Boolean     @default(false)
+  codePartage          String?     @unique @map("code_partage") @db.VarChar(10)
+  
+  createdAt            DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  // Relations
+  user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  destination          Destination? @relation(fields: [destinationId], references: [id])
+  reservations         Reservation[]
+  publications         Publication[]
+  
+  @@map("voyages")
+  @@index([userId])
+  @@index([destinationId])
+  @@index([statut])
+}
+
+model Reservation {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  voyageId             String    @map("voyage_id") @db.Uuid
+  userId               String    @map("user_id") @db.Uuid
+  
+  hotelId              String?   @map("hotel_id") @db.Uuid
+  typeChambre          String?   @map("type_chambre") @db.VarChar(50)
+  nbChambres           Int       @default(1) @map("nb_chambres")
+  
+  activites            Json      @default("[]") @db.JsonB
+  
+  dateDebut            DateTime  @map("date_debut") @db.Date
+  dateFin              DateTime  @map("date_fin") @db.Date
+  
+  montantTotal         Decimal   @map("montant_total") @db.Decimal(10, 2)
+  statut               String    @default("en_attente") @db.VarChar(50)
+  
+  numeroConfirmation   String?   @unique @map("numero_confirmation") @db.VarChar(50)
+  notes                String?   @db.Text
+  
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  
+  // Relations
+  voyage               Voyage    @relation(fields: [voyageId], references: [id], onDelete: Cascade)
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hotel                Hotel?    @relation(fields: [hotelId], references: [id])
+  paiements            Paiement[]
+  
+  @@map("reservations")
+  @@index([voyageId])
+  @@index([userId])
+}
+
+
+model Paiement {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservationId       String    @map("reservation_id") @db.Uuid
+  userId              String    @map("user_id") @db.Uuid
+  
+  montant             Decimal   @db.Decimal(10, 2)
+  mode                String    @db.VarChar(50)
+  statut              String    @default("en_attente") @db.VarChar(50)
+  
+  stripePaymentId     String?   @map("stripe_payment_id") @db.VarChar(255)
+  stripeSessionId     String?   @map("stripe_session_id") @db.VarChar(255)
+  
+  numeroFacture       String?   @unique @map("numero_facture") @db.VarChar(50)
+  factureUrl          String?   @map("facture_url") @db.Text
+  
+  datePaiement        DateTime? @map("date_paiement") @db.Timestamptz(6)
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  
+  // Relations
+  reservation         Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  user                User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("paiements")
+  @@index([reservationId])
+}
+
+model Offre {
+  id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  codePromo           String      @unique @map("code_promo") @db.VarChar(50)
+  nom                 String      @db.VarChar(255)
+  description         String?     @db.Text
+  
+  typeReduction       String      @map("type_reduction") @db.VarChar(20)
+  valeurReduction     Decimal     @map("valeur_reduction") @db.Decimal(10, 2)
+  
+  montantMinimum      Decimal?    @map("montant_minimum") @db.Decimal(10, 2)
+  destinationId       String?     @map("destination_id") @db.Uuid
+  typeVoyage          String?     @map("type_voyage") @db.VarChar(50)
+  
+  dateDebut           DateTime    @map("date_debut") @db.Date
+  dateFin             DateTime    @map("date_fin") @db.Date
+  utilisationMax      Int?        @map("utilisation_max")
+  utilisationActuelle Int         @default(0) @map("utilisation_actuelle")
+  
+  active              Boolean     @default(true)
+  createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  
+  // Relations
+  destination         Destination? @relation(fields: [destinationId], references: [id])
+  
+  @@map("offres")
+  @@index([codePromo])
+  @@index([dateDebut, dateFin])
+}
+
+
+model Publication {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  voyageId      String?  @map("voyage_id") @db.Uuid
+  
+  titre         String?  @db.VarChar(255)
+  contenu       String   @db.Text
+  images        String[] @db.Text
+  
+  likes         Int      @default(0)
+  vues          Int      @default(0)
+  
+  isPublic      Boolean  @default(true) @map("is_public")
+  signalements  Int      @default(0)
+  
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  voyage        Voyage?  @relation(fields: [voyageId], references: [id], onDelete: SetNull)
+  
+  @@map("publications")
+  @@index([userId])
+}
+
+model Comparaison {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  
+  voyageIds  String[] @map("voyage_ids") @db.Uuid
+  
+  criteres   Json     @default("{}") @db.JsonB
+  resultat   Json     @default("{}") @db.JsonB
+  
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  
+  // Relations
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("comparaisons")
+  @@index([userId])
 }

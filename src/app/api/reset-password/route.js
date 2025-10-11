@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
-import connectToDatabase from "@/lib/db";
-import User from "@/models/User";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 export async function POST(request) {
   try {
-    await connectToDatabase();
-    
     const { email, code, newPassword } = await request.json();
 
     if (!email || !code || !newPassword) {
@@ -24,16 +21,17 @@ export async function POST(request) {
       );
     }
 
-    // Hash the provided code
     const hashedCode = crypto
       .createHash('sha256')
       .update(code)
       .digest('hex');
 
-    const user = await User.findOne({
-      email: email.toLowerCase(),
-      resetPasswordToken: hashedCode,
-      resetPasswordExpires: { $gt: Date.now() }, // Check if not expired
+    const user = await prisma.user.findFirst({
+      where: {
+        email: email.toLowerCase(),
+        resetToken: hashedCode,
+        resetExpires: { gt: new Date() },
+      },
     });
 
     if (!user) {
@@ -43,12 +41,16 @@ export async function POST(request) {
       );
     }
 
-    // Hash new password and update
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
-    await user.save();
+    
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash: hashedPassword,
+        resetToken: null,
+        resetExpires: null,
+      },
+    });
 
     return NextResponse.json(
       { message: "Password reset successful! You can now login." },

@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import connectToDatabase from "@/lib/db";
-import Hotel from "@/models/Hotel";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    await connectToDatabase();
-    const hotels = await Hotel.find({ featured: true }).limit(4);
-    // Retourner directement le tableau d'hôtels
+    const hotels = await prisma.hotel.findMany({
+      where: { featured: true },
+      take: 4
+    });
     return NextResponse.json(hotels);
   } catch (error) {
     console.error("Error fetching hotels:", error);

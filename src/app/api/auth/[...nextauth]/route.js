@@ -1,7 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import connectToDatabase from "@/lib/db";
-import User from "@/models/User";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 const authOptions = {
@@ -18,33 +17,33 @@ const authOptions = {
         }
 
         try {
-          await connectToDatabase();
-          
-          const user = await User.findOne({ email: credentials.email });
+          const user = await prisma.user.findUnique({ 
+            where: { email: credentials.email } 
+          });
           
           if (!user) {
             throw new Error("No user found with this email");
           }
           
-          const isValid = await bcrypt.compare(credentials.password, user.password);
+          const isValid = await bcrypt.compare(
+            credentials.password, 
+            user.passwordHash
+          );
           
           if (!isValid) {
             throw new Error("Invalid password");
           }
           
+          // ✅ Retourne les données selon ton schéma Prisma
           return {
-            id: user._id.toString(),
+            id: user.id,
             email: user.email,
-            name: user.name,
-            profileImage: user.profileImage,
-            mobileNo: user.mobileNo,
-            address: user.address,
-            nationality: user.nationality,
-            dateOfBirth: user.dateOfBirth,
-            gender: user.gender,
-            profileCompletion: user.profileCompletion,
+            name: user.nom, 
+            profileImage: user.avatarUrl, 
+            telephone: user.telephone,
+            adresse: user.adresse,
+           
             emailVerified: user.emailVerified,
-            mobileVerified: user.mobileVerified
           };
         } catch (error) {
           console.error("Auth error:", error);
@@ -66,14 +65,9 @@ const authOptions = {
       if (user) {
         token.id = user.id;
         token.profileImage = user.profileImage;
-        token.mobileNo = user.mobileNo;
-        token.address = user.address;
-        token.nationality = user.nationality;
-        token.dateOfBirth = user.dateOfBirth;
-        token.gender = user.gender;
-        token.profileCompletion = user.profileCompletion;
+        token.telephone = user.telephone;
+        token.adresse = user.adresse;
         token.emailVerified = user.emailVerified;
-        token.mobileVerified = user.mobileVerified;
       }
       return token;
     },
@@ -81,14 +75,9 @@ const authOptions = {
       if (token) {
         session.user.id = token.id;
         session.user.profileImage = token.profileImage;
-        session.user.mobileNo = token.mobileNo;
-        session.user.address = token.address;
-        session.user.nationality = token.nationality;
-        session.user.dateOfBirth = token.dateOfBirth;
-        session.user.gender = token.gender;
-        session.user.profileCompletion = token.profileCompletion;
+        session.user.telephone = token.telephone;
+        session.user.adresse = token.adresse;
         session.user.emailVerified = token.emailVerified;
-        session.user.mobileVerified = token.mobileVerified;
       }
       return session;
     }

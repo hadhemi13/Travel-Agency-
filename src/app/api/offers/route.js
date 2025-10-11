@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import connectToDatabase from "@/lib/db";
-import Offer from "@/models/Offer";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    await connectToDatabase();
-    const offers = await Offer.find({ active: true }).sort({ createdAt: -1 });
+    const offers = await prisma.offre.findMany({
+      where: { active: true },
+      orderBy: { createdAt: 'desc' }
+    });
     return NextResponse.json({ offers, status: 200 });
   } catch (error) {
     console.error("Error fetching offers:", error);
