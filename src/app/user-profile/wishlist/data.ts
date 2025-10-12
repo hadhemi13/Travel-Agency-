@@ -13,7 +13,7 @@ export const wishlistData: WishCardType[] = [
         id: '1',
         name: 'Hotel Paradise Resort',
         address: 'Bali, Indonésie',
-        image: '/assets/images/hotel1.jpg',
+        image: '/assets/images/category/hotel/01.jpg',
         price: 120,
         rating: 4.5,
         type: 'hotel'
@@ -22,7 +22,7 @@ export const wishlistData: WishCardType[] = [
         id: '2',
         name: 'Tour de Paris',
         address: 'Paris, France',
-        image: '/assets/images/hotel1.jpg',
+        image: '/assets/images/category/hotel/02.jpg',
         price: 85,
         rating: 4.8,
         type: 'tour'
@@ -31,7 +31,7 @@ export const wishlistData: WishCardType[] = [
         id: '3',
         name: 'Vol vers Tokyo',
         address: 'Tokyo, Japon',
-        image: '/assets/images/hotel1.jpg',
+        image: '/assets/images/category/hotel/03.jpg',
         price: 450,
         rating: 4.2,
         type: 'flight'
@@ -40,7 +40,7 @@ export const wishlistData: WishCardType[] = [
         id: '4',
         name: 'Hotel Marina Bay',
         address: 'Singapour',
-        image: '/assets/images/hotel1.jpg',
+        image: '/assets/images/category/hotel/04.jpg',
         price: 200,
         rating: 4.9,
         type: 'hotel'
@@ -49,7 +49,7 @@ export const wishlistData: WishCardType[] = [
         id: '5',
         name: 'Tour de Rome',
         address: 'Rome, Italie',
-        image: '/assets/images/hotel1.jpg',
+        image: '/assets/images/category/hotel/05.jpg',
         price: 95,
         rating: 4.6,
         type: 'tour'
@@ -58,7 +58,7 @@ export const wishlistData: WishCardType[] = [
         id: '6',
         name: 'Vol vers New York',
         address: 'New York, USA',
-        image: '/assets/images/hotel1.jpg',
+        image: '/assets/images/category/hotel/06.jpg',
         price: 380,
         rating: 4.3,
         type: 'flight'
