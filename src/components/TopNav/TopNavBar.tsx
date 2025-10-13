@@ -144,10 +144,10 @@ const TopNavBar = () => {
                             {listingsOpen && (
                                 <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-lg shadow-xl border border-gray-200 py-2 animate-fadeIn overflow-hidden">
                                     <Link
-                                        href="/hotels"
+                                        href="/travel-simulator"
                                         className="block px-4 py-2.5 text-[15px] text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                                     >
-                                        Hôtels
+                                        Simulator
                                     </Link>
                                     <Link
                                         href="/flights"

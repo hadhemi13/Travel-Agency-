@@ -16,6 +16,8 @@
     "axios": "^1.12.2",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
+    "choices.js": "^11.1.0",
+    "flatpickr": "^4.6.13",
     "lucide-react": "^0.544.0",
     "mongoose": "^8.19.0",
     "next": "15.5.4",
@@ -23,6 +25,7 @@
     "nodemailer": "^6.10.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-flatpickr": "^4.0.11",
     "react-hook-form": "^7.63.0",
     "react-icons": "^5.5.0",
     "yup": "^1.7.1"
