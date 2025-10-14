@@ -9,12 +9,16 @@ export interface UserProfile {
     profileImage: string
     mobileNo?: string
     address?: string
-    nationality?: string
-    dateOfBirth?: Date
-    gender?: 'male' | 'female' | 'other'
+    role?: string
     profileCompletion: number
     emailVerified: boolean
     mobileVerified: boolean
+
+    // Champs de profil étendus
+    datenaissance?: Date
+    genre?: 'male' | 'female' | 'other'
+    nationalite?: string
+
     userEmail?: string // Pour l'identification dans les API routes
 }
 
@@ -28,15 +32,26 @@ export const useUserProfile = () => {
         name: session.user.name || '',
         email: session.user.email || '',
         profileImage: (session.user as any).profileImage || '/assets/images/avatar/01.jpg',
-        mobileNo: (session.user as any).mobileNo,
-        address: (session.user as any).address,
-        nationality: (session.user as any).nationality,
-        dateOfBirth: (session.user as any).dateOfBirth,
-        gender: (session.user as any).gender,
+        mobileNo: (session.user as any).telephone,
+        address: (session.user as any).adresse,
+        role: (session.user as any).role,
         profileCompletion: (session.user as any).profileCompletion || 0,
         emailVerified: (session.user as any).emailVerified || false,
         mobileVerified: (session.user as any).mobileVerified || false,
+
+        // Champs de profil étendus
+        datenaissance: (session.user as any).datenaissance,
+        genre: (session.user as any).genre,
+        nationalite: (session.user as any).nationalite,
     } : null
+
+    // Debug logs
+    if (session?.user) {
+        console.log('🔍 Session user data:', session.user)
+        console.log('🔍 datenaissance from session:', (session.user as any).datenaissance)
+        console.log('🔍 genre from session:', (session.user as any).genre)
+        console.log('🔍 nationalite from session:', (session.user as any).nationalite)
+    }
 
 
     const updateProfile = async (profileData: Partial<UserProfile>) => {
@@ -51,15 +66,39 @@ export const useUserProfile = () => {
             })
 
             if (response.ok) {
-                // Force update the session with fresh data from database
+                const result = await response.json()
+
+                // Update the session with the fresh data from the database
                 await update({
-                    ...profileData,
+                    name: result.user.name,
+                    email: result.user.email,
+                    profileImage: result.user.profileImage,
+                    telephone: result.user.mobileNo,
+                    adresse: result.user.address,
+                    role: result.user.role,
+                    profileCompletion: result.user.profileCompletion,
+                    emailVerified: result.user.emailVerified,
+                    mobileVerified: result.user.mobileVerified,
+                    datenaissance: result.user.datenaissance,
+                    genre: result.user.genre,
+                    nationalite: result.user.nationalite,
                     // Force a refresh by adding a timestamp
                     _refresh: Date.now()
                 })
-                return { success: true }
+                return { success: true, user: result.user }
             } else {
                 const error = await response.json()
+
+                // Si erreur de session, essayer de recharger la session
+                if (error.code === 'INVALID_SESSION' || error.code === 'SESSION_ERROR') {
+                    console.log('Session temporairement indisponible, tentative de rechargement...')
+                    // Recharger la page pour réinitialiser la session sans déconnexion
+                    setTimeout(() => {
+                        window.location.reload()
+                    }, 1000)
+                    return { success: false, error: 'Session temporairement indisponible. Rechargement...' }
+                }
+
                 return { success: false, error: error.message }
             }
         } catch (error) {

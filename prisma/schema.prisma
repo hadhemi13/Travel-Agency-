@@ -20,16 +20,27 @@ model User {
   email         String    @unique @db.VarChar(255)
   passwordHash  String    @map("password_hash") @db.VarChar(255)
   nom           String    @db.VarChar(100)
-  prenom        String?   @db.VarChar(100)
   role          String    @default("user") @db.VarChar(20)
   
   telephone     String?   @db.VarChar(20)
   adresse       String?   @db.Text
   avatarUrl     String?   @map("avatar_url") @db.Text
   
+  // Champs de profil selon le template Booking
+  datenaissance  DateTime? @map("datenaissance") @db.Date
+  genre         String?   @db.VarChar(10) // male, female, other
+  nationalite   String?   @db.VarChar(100)
+  
+  // Vérifications
+  emailVerified Boolean   @default(false) @map("email_verified")
+  mobileVerified Boolean  @default(false) @map("mobile_verified")
+  
+  // Tokens et sécurité
   resetToken    String?   @map("reset_token") @db.VarChar(255)
   resetExpires  DateTime? @map("reset_expires") @db.Timestamptz(6)
-  emailVerified Boolean   @default(false) @map("email_verified")
+  emailVerifyToken String? @map("email_verify_token") @db.VarChar(255)
+  mobileVerifyCode String? @map("mobile_verify_code") @db.VarChar(10)
+  mobileVerifyExpires DateTime? @map("mobile_verify_expires") @db.Timestamptz(6)
   
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)

@@ -41,7 +41,7 @@ const TourCard = ({ tour }: { tour: TourHistoryType }) => {
                         </span>
                     </div>
                     <div className="w-full mt-auto">
-                        <span className="inline-block bg-white text-gray-900 px-4 py-2 rounded text-base font-semibold shadow-lg">
+                        <span className="inline-block bg-white text-gray-900 px-3 py-1.5 rounded-lg text-sm font-semibold shadow-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
                             {days} days / {nights} nights
                         </span>
                     </div>
@@ -61,17 +61,12 @@ const TourCard = ({ tour }: { tour: TourHistoryType }) => {
                         <FaCalendarAlt className="mr-2 opacity-70" />
                         Travel: {travelDate}
                     </span>
-                    <span className="flex items-center text-sm text-gray-600 dark:text-[#b0b0b8]">
-                        <FaCalendarAlt className="mr-2 opacity-70" />
-                        Booked: {bookingDate}
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-[#a1a1a8] font-mono">
-                        Ref: {bookingReference}
-                    </span>
+
+
                 </div>
 
                 {/* Benefits List */}
-                <ul className="flex flex-wrap gap-4 mt-3 mb-0 border-t border-gray-200 dark:border-[rgba(255,255,255,0.07)] pt-3">
+                <ul className="flex flex-wrap gap-4 mt-3 mb-0">
                     {benefits.flight && (
                         <li className="flex items-center text-base font-normal mb-0 group/item text-gray-700 dark:text-[#b0b0b8]">
                             <FaPlane className="text-orange-500 mr-2 group-hover/item:scale-110 transition-transform duration-300" />
@@ -80,7 +75,7 @@ const TourCard = ({ tour }: { tour: TourHistoryType }) => {
                     )}
                     {benefits.hotel && (
                         <li className="flex items-center text-base font-normal mb-0 group/item text-gray-700 dark:text-[#b0b0b8]">
-                            <FaHotel className="text-cyan-500 mr-2 group-hover/item:scale-110 transition-transform duration-300" />
+                            <FaHotel className="text-sky-400 mr-2 group-hover/item:scale-110 transition-transform duration-300" />
                             <span className="group-hover/item:text-gray-900 dark:group-hover/item:text-white transition-colors">{benefits.hotel} Hotel</span>
                         </li>
                     )}
@@ -95,7 +90,7 @@ const TourCard = ({ tour }: { tour: TourHistoryType }) => {
 
             {/* Card Footer */}
             <div className="px-4 pb-4 pt-0 mt-auto">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 flex-wrap">
+                <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                         <h5 className="text-2xl font-normal text-green-600 dark:text-[#0cbc87] mb-0">
                             ${price}
@@ -105,7 +100,7 @@ const TourCard = ({ tour }: { tour: TourHistoryType }) => {
                     <div className="flex gap-2 relative z-10">
                         <Link
                             href={`/historique/${tour.id}`}
-                            className="px-4 py-2 bg-blue-600 dark:bg-[#8e85e6] hover:bg-blue-700 dark:hover:bg-[#7a6deb] hover:shadow-lg text-white text-sm font-medium rounded transition-all duration-300 hover:scale-105 mb-0"
+                            className="px-4 py-2 bg-purple-600 dark:bg-[#8e85e6] hover:bg-purple-700 dark:hover:bg-[#7a6deb] hover:shadow-lg text-white text-sm font-medium rounded transition-all duration-300 hover:scale-105"
                         >
                             View Details
                         </Link>

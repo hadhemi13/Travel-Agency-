@@ -1,32 +1,22 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { cookies } from 'next/headers'
-import connectToDatabase from '@/lib/db'
-import User from '@/models/User'
+import { prisma } from '@/lib/prisma'
 
 // Helper function to get current user
 async function getCurrentUser() {
   try {
-    // First try NextAuth session
     const session = await getServerSession()
     
     if (session?.user?.id) {
-      await connectToDatabase()
-      return await User.findById(session.user.id).select('-password')
-    }
-    
-    if (session?.user?.email) {
-      await connectToDatabase()
-      return await User.findOne({ email: session.user.email }).select('-password')
-    }
-    
-    // Fallback: try to get from cookies (temporary solution)
-    const cookieStore = cookies()
-    const userEmail = cookieStore.get('user-email')?.value
-    
-    if (userEmail) {
-      await connectToDatabase()
-      return await User.findOne({ email: userEmail }).select('-password')
+      return await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: {
+          id: true,
+          nom: true,
+          email: true,
+          avatarUrl: true
+        }
+      })
     }
     
     return null
@@ -55,22 +45,21 @@ export async function POST(request) {
     // In a real app, you'd upload to a cloud service like AWS S3, Cloudinary, etc.
     const imageUrl = `/assets/images/avatar/${profileImage.name || '01.jpg'}`
 
-    const updatedUser = await User.findByIdAndUpdate(
-      currentUser._id,
-      { 
-        profileImage: imageUrl,
+    const updatedUser = await prisma.user.update({
+      where: { id: currentUser.id },
+      data: { 
+        avatarUrl: imageUrl,
         updatedAt: new Date()
       },
-      { new: true }
-    )
-
-    if (!updatedUser) {
-      return NextResponse.json({ message: 'Utilisateur non trouvé' }, { status: 404 })
-    }
+      select: {
+        id: true,
+        avatarUrl: true
+      }
+    })
 
     return NextResponse.json({
       message: 'Image de profil mise à jour avec succès',
-      profileImage: updatedUser.profileImage
+      imageUrl: updatedUser.avatarUrl
     })
 
   } catch (error) {
