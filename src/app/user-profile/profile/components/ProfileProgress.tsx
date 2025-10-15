@@ -13,7 +13,7 @@ const ProfileProgress = () => {
     return (
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
             <div className="mb-4">
-                <h6 className="text-lg font-semibold text-gray-800 dsark:text-white mb-2">{t('profile.complete-profile')}</h6>
+                <h6 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">{t('profile.complete-profile')}</h6>
                 <div className="flex items-center gap-3 mb-3">
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
                         {completionPercentage}%

@@ -73,35 +73,35 @@ model Destination {
   @@map("destinations")
 }
 
-model Hotel {
-  id                    String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  destinationId         String      @map("destination_id") @db.Uuid
-  nom                   String      @db.VarChar(255)
-  adresse               String      @db.Text
-  etoiles               Int?
-  rating                Float       @default(0) @db.Real 
-  chambresDisponibles   Json        @default("[]") @map("chambres_disponibles") @db.JsonB
-  
-  prixMin               Decimal     @map("prix_min") @db.Decimal(10, 2)
-  prixMax               Decimal     @map("prix_max") @db.Decimal(10, 2)
-  
-  description           String?     @db.Text
-  images                String[]    @db.Text
-  equipements           String[]    @db.Text
-  
-  gamme                 String?     @db.VarChar(20)
-   featured              Boolean     @default(false) 
-  active                Boolean     @default(true)
-  createdAt             DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
-  
-  // Relations
-  destination           Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
-  reservations          Reservation[]
-  
-  @@map("hotels")
-  @@index([destinationId])
-  @@index([gamme])
-}
+  model Hotel {
+    id                    String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    destinationId         String      @map("destination_id") @db.Uuid
+    nom                   String      @db.VarChar(255)
+    adresse               String      @db.Text
+    etoiles               Int?
+    rating                Float       @default(0) @db.Real 
+    chambresDisponibles   Json        @default("[]") @map("chambres_disponibles") @db.JsonB
+    
+    prixMin               Decimal     @map("prix_min") @db.Decimal(10, 2)
+    prixMax               Decimal     @map("prix_max") @db.Decimal(10, 2)
+    
+    description           String?     @db.Text
+    images                String[]    @db.Text
+    equipements           String[]    @db.Text
+    
+    gamme                 String?     @db.VarChar(20)
+    featured              Boolean     @default(false) 
+    active                Boolean     @default(true)
+    createdAt             DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+    
+    // Relations
+    destination           Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+    reservations          Reservation[]
+    
+    @@map("hotels")
+    @@index([destinationId])
+    @@index([gamme])
+  }
 
 
 model Activite {
@@ -303,4 +303,25 @@ model Comparaison {
   
   @@map("comparaisons")
   @@index([userId])
+}
+
+model HotelSearchCache {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  location     String   @db.VarChar(255)
+  checkIn      DateTime @map("check_in") @db.Date
+  checkOut     DateTime @map("check_out") @db.Date
+  adults       Int
+  rooms        Int
+  
+  hotels       Json     @db.JsonB
+  totalResults Int      @map("total_results")
+  
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt    DateTime @map("expires_at") @db.Timestamptz(6)
+  searchCount  Int      @default(1) @map("search_count")
+  
+  @@unique([location, checkIn, checkOut, adults, rooms])
+  @@map("hotel_search_cache")
+  @@index([expiresAt])
+  @@index([location])
 }

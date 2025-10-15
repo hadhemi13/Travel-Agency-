@@ -8,7 +8,7 @@ export default function HomePage() {
     <>
       <TopNavBar />
       <main className="min-h-screen bg-gray-950 dark:bg-gray-900 pt-16">
-        <Hero />
+        <Hero/>
         <FeaturedHotels />
       <Footer/>
       </main>
