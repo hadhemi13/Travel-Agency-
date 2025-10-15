@@ -28,7 +28,11 @@ export const authOptions = {
               telephone: true,
               adresse: true,
               emailVerified: true,
-              role: true
+              role: true,
+              datenaissance: true,
+              genre: true,
+              nationalite: true,
+              mobileVerified: true
             }
           });
           
@@ -46,16 +50,25 @@ export const authOptions = {
           }
           
           // ✅ Retourne les données selon ton schéma Prisma
-          return {
+          const userData = {
             id: user.id,
             email: user.email,
             name: user.nom, 
             profileImage: user.avatarUrl, 
             telephone: user.telephone,
             adresse: user.adresse,
-           
+            role: user.role,
             emailVerified: user.emailVerified,
+            mobileVerified: user.mobileVerified,
+            datenaissance: user.datenaissance,
+            genre: user.genre,
+            nationalite: user.nationalite
           };
+          
+          console.log('🔍 User data from authorize callback:', userData);
+          console.log('🔍 datenaissance from authorize:', userData.datenaissance, typeof userData.datenaissance);
+          
+          return userData;
         } catch (error) {
           console.error("Auth error:", error);
           throw error;

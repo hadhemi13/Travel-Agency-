@@ -64,15 +64,15 @@ const LeftPanel = () => {
 
     if (status === 'loading') {
         return (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 w-full">
+            <div className="bg-white dark:bg-[#2a2c31] rounded-lg shadow-sm border border-gray-200 dark:border-[rgba(255,255,255,0.07)] w-full">
                 <div className="p-6">
                     <div className="animate-pulse">
-                        <div className="h-20 w-20 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-4"></div>
-                        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded mb-2"></div>
-                        <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded mb-6"></div>
+                        <div className="h-20 w-20 bg-gray-300 dark:bg-[#464950] rounded-full mx-auto mb-4"></div>
+                        <div className="h-4 bg-gray-300 dark:bg-[#464950] rounded mb-2"></div>
+                        <div className="h-3 bg-gray-300 dark:bg-[#464950] rounded mb-6"></div>
                         <div className="space-y-2">
                             {[...Array(7)].map((_, i) => (
-                                <div key={i} className="h-10 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                                <div key={i} className="h-10 bg-gray-300 dark:bg-[#464950] rounded"></div>
                             ))}
                         </div>
                     </div>
@@ -82,11 +82,11 @@ const LeftPanel = () => {
     }
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 w-full">
+        <div className="bg-white dark:bg-[#2a2c31] rounded-lg shadow-sm border border-gray-200 dark:border-[rgba(255,255,255,0.07)] w-full">
             {/* Edit Profile Button */}
             <div className="absolute top-4 right-4">
                 <button
-                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-[#a1a1a8] hover:bg-gray-100 dark:hover:bg-[#2a2c31] rounded-lg transition-colors"
                     title="Modifier le profil"
                 >
                     <BsPencilSquare />
@@ -102,7 +102,7 @@ const LeftPanel = () => {
                             alt="Avatar"
                             width={80}
                             height={80}
-                            className="w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover"
+                            className="w-20 h-20 rounded-full border-4 border-white dark:border-[#2a2c31] shadow-lg object-cover"
                         />
                     </div>
                     <h6 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">
@@ -110,13 +110,13 @@ const LeftPanel = () => {
                     </h6>
                     <Link
                         href={`mailto:${user?.email || ''}`}
-                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm transition-colors"
+                        className="text-gray-400 dark:text-gray-400 hover:text-gray-300 dark:hover:text-gray-300 text-sm transition-colors"
                     >
                         {user?.email || t('common.email-not-defined')}
                     </Link>
                 </div>
 
-                <hr className="border-gray-200 dark:border-gray-700 mb-6" />
+                <hr className="border-gray-200 dark:border-[rgba(255,255,255,0.07)] mb-6" />
 
                 {/* Navigation Menu */}
                 <nav className="space-y-1">
@@ -129,11 +129,11 @@ const LeftPanel = () => {
                                 key={item.key}
                                 href={item.url}
                                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-r-2 border-blue-600 dark:border-blue-400'
-                                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                                    ? 'bg-[#8e85e6] dark:bg-[#8e85e6] text-white dark:text-white'
+                                    : 'text-white dark:text-white hover:bg-gray-600 dark:hover:bg-gray-600'
                                     }`}
                             >
-                                <Icon className={`text-lg ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`} />
+                                <Icon className={`text-lg ${isActive ? 'text-white dark:text-white' : 'text-white dark:text-white'}`} />
                                 <span className="font-medium">{item.label}</span>
                             </Link>
                         )

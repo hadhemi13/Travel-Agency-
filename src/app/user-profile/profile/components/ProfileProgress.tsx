@@ -11,11 +11,11 @@ const ProfileProgress = () => {
     const completionPercentage = user?.profileCompletion || 0
 
     return (
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+        <div className="bg-gray-50 dark:bg-[#2a2c31] rounded-lg p-6">
             <div className="mb-4">
-                <h6 className="text-lg font-semibold text-gray-800 dsark:text-white mb-2">{t('profile.complete-profile')}</h6>
+                <h6 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">{t('profile.complete-profile')}</h6>
                 <div className="flex items-center gap-3 mb-3">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                    <span className="text-sm font-medium text-gray-700 dark:text-[#a1a1a8] whitespace-nowrap">
                         {completionPercentage}%
                     </span>
                     <div className="flex-1 bg-green-100 dark:bg-green-900/30 rounded-full h-2">
@@ -26,18 +26,18 @@ const ProfileProgress = () => {
                         </div>
                     </div>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                <p className="text-gray-600 dark:text-[#a1a1a8] text-sm">
                     Obtenez le meilleur de la réservation en ajoutant les détails restants !
                 </p>
             </div>
 
-            <div className="bg-white dark:bg-gray-700 rounded-lg p-4">
+            <div className="bg-white dark:bg-[#2a2c31] rounded-lg p-4">
                 <div className="flex flex-wrap gap-4 justify-between">
                     <Link
                         href="#"
                         className={`flex items-center gap-2 transition-colors ${user?.emailVerified
                             ? 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300'
-                            : 'text-gray-400 dark:text-gray-500'
+                            : 'text-gray-400 dark:text-[#a1a1a8]'
                             }`}
                     >
                         <BsCheckCircleFill className="text-lg" />
@@ -47,7 +47,7 @@ const ProfileProgress = () => {
                         href="#"
                         className={`flex items-center gap-2 transition-colors ${user?.mobileVerified
                             ? 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300'
-                            : 'text-gray-400 dark:text-gray-500'
+                            : 'text-gray-400 dark:text-[#a1a1a8]'
                             }`}
                     >
                         <BsCheckCircleFill className="text-lg" />
@@ -55,7 +55,7 @@ const ProfileProgress = () => {
                     </Link>
                     <Link
                         href="#"
-                        className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                        className="flex items-center gap-2 text-[#8e85e6] dark:text-[#8e85e6] hover:text-[#7a6deb] dark:hover:text-[#7a6deb] transition-colors"
                     >
                         <BsPlusCircleFill className="text-lg" />
                         <span className="font-medium">{t('profile.complete-basic-info')}</span>

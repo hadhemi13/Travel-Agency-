@@ -15,6 +15,7 @@ const UpdatePassword = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [successMessage, setSuccessMessage] = useState('')
+    const [errorMessage, setErrorMessage] = useState('')
 
     const updatePasswordSchema = yup.object({
         currentPassword: yup
@@ -37,6 +38,7 @@ const UpdatePassword = () => {
     const onSubmit = async (data: any) => {
         setIsSubmitting(true)
         setSuccessMessage('')
+        setErrorMessage('')
 
         try {
             const result = await updatePassword(data.currentPassword, data.newPassword)
@@ -47,23 +49,23 @@ const UpdatePassword = () => {
                 // Reset form
                 reset()
             } else {
-                alert(result.error || 'Erreur lors de la mise à jour du mot de passe')
+                setErrorMessage(result.error || 'Erreur lors de la mise à jour du mot de passe')
             }
         } catch (error) {
-            alert('Erreur lors de la mise à jour du mot de passe')
+            setErrorMessage('Erreur lors de la mise à jour du mot de passe')
         } finally {
             setIsSubmitting(false)
         }
     }
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-[#191b1d] rounded-lg shadow-sm border border-gray-200 dark:border-[rgba(255,255,255,0.07)]">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-[rgba(255,255,255,0.07)]">
                 <h4 className="text-xl font-semibold text-gray-800 dark:text-white">{t('profile.password')}</h4>
-                <p className="text-gray-600 dark:text-gray-300 mt-1">
+                <p className="text-gray-600 dark:text-[#a1a1a8] mt-1">
                     {t('profile.enter-email')}{' '}
-                    <span className="text-blue-600 dark:text-blue-400 font-medium">{user?.email || t('common.not-defined')}</span>
+                    <span className="text-[#8e85e6] dark:text-[#8e85e6] font-medium">{user?.email || t('common.not-defined')}</span>
                 </p>
             </div>
 
@@ -72,7 +74,7 @@ const UpdatePassword = () => {
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     {/* Current Password */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-[#a1a1a8] mb-2">
                             {t('form.required')} votre mot de passe actuel
                         </label>
                         <div className="relative">
@@ -80,7 +82,7 @@ const UpdatePassword = () => {
                                 {...register('currentPassword')}
                                 type={showCurrentPassword ? 'text' : 'password'}
                                 placeholder={t('form.required') + ' votre mot de passe actuel'}
-                                className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-[#464950] bg-white dark:bg-[#2a2c31] text-gray-900 dark:text-[#b0b0b8] rounded-lg focus:ring-2 focus:ring-[#8e85e6] focus:border-[#8e85e6] transition-colors"
                             />
                             <button
                                 type="button"
@@ -97,7 +99,7 @@ const UpdatePassword = () => {
 
                     {/* New Password */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-[#a1a1a8] mb-2">
                             {t('form.required')} votre nouveau mot de passe
                         </label>
                         <div className="relative">
@@ -105,7 +107,7 @@ const UpdatePassword = () => {
                                 {...register('newPassword')}
                                 type={showNewPassword ? 'text' : 'password'}
                                 placeholder={t('form.required') + ' votre nouveau mot de passe'}
-                                className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-[#464950] bg-white dark:bg-[#2a2c31] text-gray-900 dark:text-[#b0b0b8] rounded-lg focus:ring-2 focus:ring-[#8e85e6] focus:border-[#8e85e6] transition-colors"
                             />
                             <button
                                 type="button"
@@ -122,7 +124,7 @@ const UpdatePassword = () => {
 
                     {/* Confirm Password */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-[#a1a1a8] mb-2">
                             {t('form.required')} confirmer votre nouveau mot de passe
                         </label>
                         <div className="relative">
@@ -130,7 +132,7 @@ const UpdatePassword = () => {
                                 {...register('confirmPassword')}
                                 type={showConfirmPassword ? 'text' : 'password'}
                                 placeholder={t('form.required') + ' confirmer votre nouveau mot de passe'}
-                                className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-[#464950] bg-white dark:bg-[#2a2c31] text-gray-900 dark:text-[#b0b0b8] rounded-lg focus:ring-2 focus:ring-[#8e85e6] focus:border-[#8e85e6] transition-colors"
                             />
                             <button
                                 type="button"
@@ -147,8 +149,15 @@ const UpdatePassword = () => {
 
                     {/* Success Message */}
                     {successMessage && (
-                        <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 px-4 py-3 rounded-lg mb-4">
-                            {successMessage}
+                        <div className="p-4 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg">
+                            <p className="text-green-700 dark:text-green-300 text-sm">{successMessage}</p>
+                        </div>
+                    )}
+
+                    {/* Error Message */}
+                    {errorMessage && (
+                        <div className="p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg">
+                            <p className="text-red-700 dark:text-red-300 text-sm">{errorMessage}</p>
                         </div>
                     )}
 
@@ -157,7 +166,7 @@ const UpdatePassword = () => {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="px-6 py-3 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-6 py-3 bg-[#8e85e6] hover:bg-[#7a6deb] disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors focus:ring-2 focus:ring-[#8e85e6] focus:ring-offset-2 dark:focus:ring-offset-[#191b1d] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isSubmitting ? t('profile.saving') : t('form.save')}
                         </button>

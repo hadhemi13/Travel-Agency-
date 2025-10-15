@@ -120,6 +120,8 @@ export async function PATCH(request) {
       nationalite 
     } = body
 
+    console.log('🔍 Received datenaissance:', datenaissance, typeof datenaissance)
+
     // Prepare update data for Prisma
     const updateData = {
       nom: name,
@@ -132,6 +134,7 @@ export async function PATCH(request) {
     }
 
     console.log('🔍 Update data prepared:', updateData)
+    console.log('🔍 datenaissance in updateData:', updateData.datenaissance, typeof updateData.datenaissance)
 
     console.log('🔍 Attempting Prisma update for user ID:', session.user.id)
     const updatedUser = await prisma.user.update({
@@ -155,11 +158,37 @@ export async function PATCH(request) {
       }
     })
 
-    // Calculate profile completion
+    console.log('🔍 Updated user from database:', updatedUser)
+    console.log('🔍 datenaissance from database:', updatedUser.datenaissance, typeof updatedUser.datenaissance)
+
+    // Fetch fresh data from database to ensure we have the latest
+    const freshUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        nom: true,
+        email: true,
+        avatarUrl: true,
+        telephone: true,
+        adresse: true,
+        role: true,
+        emailVerified: true,
+        datenaissance: true,
+        genre: true,
+        nationalite: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    })
+
+    console.log('🔍 Fresh user from database:', freshUser)
+    console.log('🔍 Fresh datenaissance from database:', freshUser?.datenaissance, typeof freshUser?.datenaissance)
+
+    // Calculate profile completion using fresh data
     const profileFields = [
-      updatedUser.nom, updatedUser.email, 
-      updatedUser.telephone, updatedUser.adresse, updatedUser.avatarUrl,
-      updatedUser.datenaissance, updatedUser.genre, updatedUser.nationalite 
+      freshUser.nom, freshUser.email, 
+      freshUser.telephone, freshUser.adresse, freshUser.avatarUrl,
+      freshUser.datenaissance, freshUser.genre, freshUser.nationalite 
     ]
     const completedFields = profileFields.filter(field => field && field !== '').length
     const profileCompletion = Math.round((completedFields / profileFields.length) * 100)
@@ -169,28 +198,28 @@ export async function PATCH(request) {
     return NextResponse.json({
       message: 'Profil mis à jour avec succès',
       user: {
-        id: updatedUser.id,
-        name: updatedUser.nom,
-        email: updatedUser.email,
-        profileImage: updatedUser.avatarUrl || '/assets/images/avatar/01.jpg',
-        mobileNo: updatedUser.telephone,
-        address: updatedUser.adresse,
-        role: updatedUser.role,
+        id: freshUser.id,
+        name: freshUser.nom,
+        email: freshUser.email,
+        profileImage: freshUser.avatarUrl || '/assets/images/avatar/01.jpg',
+        mobileNo: freshUser.telephone,
+        address: freshUser.adresse,
+        role: freshUser.role,
         profileCompletion,
-        emailVerified: updatedUser.emailVerified,
-        // mobileVerified: updatedUser.mobileVerified, // Temporairement commenté car la colonne n'existe pas en DB
+        emailVerified: freshUser.emailVerified,
+        // mobileVerified: freshUser.mobileVerified, // Temporairement commenté car la colonne n'existe pas en DB
         
         // Champs de profil étendus
-        datenaissance: updatedUser.datenaissance,
-        genre: updatedUser.genre,
-        nationalite: updatedUser.nationalite,
+        datenaissance: freshUser.datenaissance,
+        genre: freshUser.genre,
+        nationalite: freshUser.nationalite,
         
        
         
         
         
-        createdAt: updatedUser.createdAt,
-        updatedAt: updatedUser.updatedAt
+        createdAt: freshUser.createdAt,
+        updatedAt: freshUser.updatedAt
       }
     })
 

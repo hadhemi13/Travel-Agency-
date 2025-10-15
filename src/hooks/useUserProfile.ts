@@ -1,5 +1,5 @@
 'use client'
-import { useSession } from 'next-auth/react'
+import { useSession, getSession } from 'next-auth/react'
 import { useState, useEffect } from 'react'
 
 export interface UserProfile {
@@ -48,15 +48,18 @@ export const useUserProfile = () => {
     // Debug logs
     if (session?.user) {
         console.log('🔍 Session user data:', session.user)
-        console.log('🔍 datenaissance from session:', (session.user as any).datenaissance)
-        console.log('🔍 genre from session:', (session.user as any).genre)
-        console.log('🔍 nationalite from session:', (session.user as any).nationalite)
+        console.log('🔍 datenaissance from session:', (session.user as any).datenaissance, typeof (session.user as any).datenaissance)
+        console.log('🔍 genre from session:', (session.user as any).genre, typeof (session.user as any).genre)
+        console.log('🔍 nationalite from session:', (session.user as any).nationalite, typeof (session.user as any).nationalite)
     }
 
 
     const updateProfile = async (profileData: Partial<UserProfile>) => {
         setLoading(true)
         try {
+            console.log('🔍 Sending profile data:', profileData)
+            console.log('🔍 datenaissance being sent:', profileData.datenaissance, typeof profileData.datenaissance)
+
             const response = await fetch('/api/user/profile', {
                 method: 'PATCH',
                 headers: {
@@ -67,6 +70,8 @@ export const useUserProfile = () => {
 
             if (response.ok) {
                 const result = await response.json()
+                console.log('🔍 Received result from API:', result)
+                console.log('🔍 datenaissance from API:', result.user?.datenaissance, typeof result.user?.datenaissance)
 
                 // Update the session with the fresh data from the database
                 await update({
@@ -85,6 +90,9 @@ export const useUserProfile = () => {
                     // Force a refresh by adding a timestamp
                     _refresh: Date.now()
                 })
+
+                // Force a session refresh by calling getSession
+                await getSession()
                 return { success: true, user: result.user }
             } else {
                 const error = await response.json()

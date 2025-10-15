@@ -15,7 +15,7 @@ const UserLayout = ({ children }: { children: ReactNode }) => {
 
     return (
         <>
-            <main className="pt-16 bg-gray-50 dark:bg-gray-900 min-h-screen">
+            <main className="pt-16 bg-gray-50 dark:bg-[#222529] min-h-screen">
                 <section className="py-6">
                     <div className="max-w-7xl mx-auto px-4">
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -28,7 +28,7 @@ const UserLayout = ({ children }: { children: ReactNode }) => {
                             <div className="lg:hidden mb-4">
                                 <button
                                     onClick={() => setIsOpen(true)}
-                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#8e85e6] text-white rounded-lg hover:bg-[#7a6deb] transition-colors"
                                 >
                                     <FaSlidersH />
                                     Menu
@@ -54,13 +54,13 @@ const UserLayout = ({ children }: { children: ReactNode }) => {
                     />
 
                     {/* Sidebar */}
-                    <div className="absolute right-0 top-0 h-full w-80 bg-white dark:bg-gray-800 shadow-xl">
-                        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <div className="absolute right-0 top-0 h-full w-80 bg-white dark:bg-[#191b1d] shadow-xl">
+                        <div className="p-4 border-b border-gray-200 dark:border-[rgba(255,255,255,0.07)]">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Menu</h3>
                                 <button
                                     onClick={() => setIsOpen(false)}
-                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-[#2a2c31] rounded-lg transition-colors"
                                     aria-label="Fermer le menu"
                                     title="Fermer le menu"
                                 >
