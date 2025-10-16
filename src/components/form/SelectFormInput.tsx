@@ -1,37 +1,40 @@
 'use client'
+import Choices from 'choices.js'
+import {type Options as ChoiceOption} from 'choices.js'
+import {type ReactElement, useEffect, useRef} from 'react'
 
-import { type ReactElement } from 'react'
-
-export type SelectFormInputProps = {
+export type ChoiceProp = Partial<ChoiceOption> & {
   children: ReactElement[]
   multiple?: boolean
   className?: string
-  onChange?: (value: string) => void
-  'data-search-enabled'?: string
+  onChange?: (text: string) => void
 }
 
-const SelectFormInput = ({
-  children,
-  multiple,
-  className = '',
-  onChange,
-  ...props
-}: SelectFormInputProps) => {
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (onChange) {
-      onChange(e.target.value)
+const SelectFormInput = ({children, multiple, className, onChange, ...choiceOptions}: ChoiceProp) => {
+  const selectE = useRef<HTMLSelectElement>(null)
+
+  useEffect(() => {
+    if (selectE.current) {
+      const choices = new Choices(selectE.current, {
+        ...choiceOptions,
+        placeholder: true,
+        placeholderValue: 'Type and hit enter',
+        allowHTML: true,
+        shouldSort: false,
+      })
+      choices.passedElement.element.addEventListener('change', (e: Event) => {
+        if (!(e.target instanceof HTMLSelectElement)) return
+        if (onChange) {
+          onChange(e.target.value)
+        }
+      })
     }
-  }
+  }, [selectE])
 
   return (
-    <select
-      multiple={multiple}
-      className={`w-full h-14 px-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white appearance-none ${className}`}
-      onChange={handleChange}
-      {...props}
-    >
-      {children}
-    </select>
+      <select ref={selectE} multiple={multiple} className={className}>
+        {children}
+      </select>
   )
 }
 
