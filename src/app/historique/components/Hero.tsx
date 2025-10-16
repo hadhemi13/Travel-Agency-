@@ -20,7 +20,7 @@ const Hero = () => {
                 <div
                     className="relative p-6 sm:p-12 rounded-3xl overflow-hidden bg-cover bg-center"
                     style={{
-                        backgroundImage: `url('/assets/images/bg/04.jpg')`,
+                        backgroundImage: `url('/assets/images/bg/02.jpg')`,
                         minHeight: '300px'
                     }}
                 >
@@ -137,8 +137,8 @@ const Hero = () => {
                                                 key={status}
                                                 onClick={() => setFilters({ ...filters, status })}
                                                 className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 capitalize ${filters.status === status
-                                                        ? 'bg-blue-600 dark:bg-[#8e85e6] text-white shadow-lg'
-                                                        : 'bg-gray-100 dark:bg-[#2a2c31] text-gray-700 dark:text-[#b0b0b8] hover:bg-gray-200 dark:hover:bg-[#464950]'
+                                                    ? 'bg-blue-600 dark:bg-[#8e85e6] text-white shadow-lg'
+                                                    : 'bg-gray-100 dark:bg-[#2a2c31] text-gray-700 dark:text-[#b0b0b8] hover:bg-gray-200 dark:hover:bg-[#464950]'
                                                     }`}
                                             >
                                                 {status}

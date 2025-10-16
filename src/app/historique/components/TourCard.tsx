@@ -100,7 +100,7 @@ const TourCard = ({ tour }: { tour: TourHistoryType }) => {
                     <div className="flex gap-2 relative z-10">
                         <Link
                             href={`/historique/${tour.id}`}
-                            className="px-4 py-2 bg-purple-600 dark:bg-[#8e85e6] hover:bg-purple-700 dark:hover:bg-[#7a6deb] hover:shadow-lg text-white text-sm font-medium rounded transition-all duration-300 hover:scale-105"
+                            className="px-4 py-2 bg-purple-600 dark:bg-[#8e85e6] hover:bg-purple-700 dark:hover:bg-[#7a6deb] hover:shadow-lg text-white text-sm font-medium rounded-sm transition-all duration-300 hover:scale-105"
                         >
                             View Details
                         </Link>
