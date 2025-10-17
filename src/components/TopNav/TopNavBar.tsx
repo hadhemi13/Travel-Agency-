@@ -45,6 +45,7 @@ const TopNavBar = () => {
     const accountsRef = useRef<HTMLDivElement>(null)
     const moreRef = useRef<HTMLDivElement>(null)
 
+
     useEffect(() => {
         const handleScroll = () => {
             setScrollY(window.scrollY)
@@ -144,10 +145,10 @@ const TopNavBar = () => {
                             {listingsOpen && (
                                 <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-lg shadow-xl border border-gray-200 py-2 animate-fadeIn overflow-hidden">
                                     <Link
-                                        href="/travel-simulator"
+                                        href="/hotels"
                                         className="block px-4 py-2.5 text-[15px] text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                                     >
-                                        Simulator
+                                        Hôtels
                                     </Link>
                                     <Link
                                         href="/flights"
@@ -161,10 +162,17 @@ const TopNavBar = () => {
                                     >
                                         {t('nav.tours')}
                                     </Link>
+                                    <Link
+                                        href="/generate-trip"
+                                        className="block px-4 py-2.5 text-[15px] text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                                    >
+                                        Suggestions programmes
+                                    </Link>
                                 </div>
+                        
                             )}
                         </div>
-
+                        
                         {/* Pages Dropdown */}
                         <div className="relative" ref={pagesRef}>
                             <button
@@ -606,4 +614,5 @@ const TopNavBar = () => {
     )
 }
 
+  
 export default TopNavBar
