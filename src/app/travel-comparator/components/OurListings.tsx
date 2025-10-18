@@ -1,69 +1,69 @@
 'use client'
-import { useState } from 'react'
-import { FaPlus, FaRegStar, FaStar, FaStarHalfAlt } from 'react-icons/fa'
+import { useState } from 'react';
+import { BsArrowRight, BsCheckLg, BsXLg } from "react-icons/bs";
+import { FaPlus, FaRegStar, FaStar, FaStarHalfAlt } from "react-icons/fa";
 
-// Mock data
-const currency = '$'
+// Mock data pour la démo
+const currency = "$";
 const compareListings = [
   {
-    image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=300&fit=crop',
-    name: 'Luxury Villa in Beverly Hills',
-    price: '5,500'
+    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop",
+    name: "Courtyard by Marriott New York",
+    price: "750"
   },
   {
-    image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=300&fit=crop',
-    name: 'Modern Downtown Apartment',
-    price: '3,200'
+    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=300&fit=crop",
+    name: "Club Quarters Hotel",
+    price: "800"
   },
   {
-    image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&h=300&fit=crop',
-    name: 'Cozy Suburban Home',
-    price: '2,800'
+    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=300&fit=crop",
+    name: "Pride moon Village Resort & Spa",
+    price: "1000"
   }
-]
+];
 
 const OurListings = () => {
   return (
-    <section>
-      <div className="container mx-auto px-4">
-        <div className="flex flex-wrap -mx-4">
-          <div className="w-full px-4">
+    <section className="dark:bg-[#222529]  py-8 md:py-12">
+      <div className="container mx-auto px-3 sm:px-4">
+        <div className="flex flex-wrap -mx-3 sm:-mx-4">
+          <div className="w-full px-3 sm:px-4">
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
+              <table className="w-full align-middle">
                 <thead className="align-top">
                   <tr>
-                    <th scope="col" className="p-4 text-left">
-                      <p className="text-3xl font-bold mb-4">Compare Our Listing</p>
-                      <button className="inline-flex items-center justify-center w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full mb-0">
+                    <th scope="col" className="p-3 text-left align-top">
+                      <p className="text-2xl md:text-3xl lg:text-[40px] font-bold mb-4 md:mb-6 font-['Poppins',sans-serif] text-white">
+                        Compare Our Listing
+                      </p>
+                      <button className="bg-[#6366f1] hover:bg-[#5558dd] active:bg-[#4f52cc] text-white rounded-full w-[60px] h-[60px] lg:w-[80px] lg:h-[80px] inline-flex items-center justify-center text-lg lg:text-2xl mb-0 transition-all duration-150 focus:shadow-[0_0_0_0.25rem_rgba(99,102,241,0.5)]">
                         <FaPlus />
                       </button>
                     </th>
                     {compareListings.map((item, idx) => {
                       return (
-                        <th scope="col" key={idx} className="p-4 min-w-[280px]">
+                        <th scope="col" key={idx} className="p-3 align-top">
                           <div className="bg-transparent">
                             <img
                               src={item.image}
-                              className="rounded w-full h-48 object-cover"
-                              alt="..."
+                              className="rounded-xl w-full h-auto object-cover"
+                              alt={item.name}
                             />
-                            <div className="px-0 py-4">
-                              <span className="text-xl font-semibold">
-                                <a href="#" className="hover:text-blue-600">{item.name}</a>
+                            <div className="px-0 pt-3 md:pt-4">
+                              <span className="text-base md:text-lg font-semibold block font-['Poppins',sans-serif]">
+                                <a href="#" className="text-white hover:text-[#6366f1] no-underline transition-colors">{item.name}</a>
                               </span>
-                              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-2 gap-2">
-                                <span className="text-xl font-semibold text-green-600 mb-0">
-                                  {currency}
-                                  {item.price}
+                              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-2 md:mt-3 gap-2">
+                                <span className="text-xl md:text-2xl font-bold text-[#10b981] mb-0 font-['Poppins',sans-serif]">
+                                  {currency}{item.price}
                                 </span>
                                 <a
                                   href="#"
-                                  className="text-sm text-blue-600 hover:text-blue-800 mb-0 p-0 inline-flex items-center"
+                                  className="text-xs md:text-sm text-[#8b8bff] hover:text-[#a3a3ff] mb-0 p-0 inline-flex items-center no-underline font-medium transition-colors"
                                 >
                                   View Listing
-                                  <svg className="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 16 16">
-                                    <path fillRule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
-                                  </svg>
+                                  <BsArrowRight className="ml-2" />
                                 </a>
                               </div>
                             </div>
@@ -74,188 +74,164 @@ const OurListings = () => {
                   </tr>
                 </thead>
                 <tbody className="border-t-0">
-                  <tr className="border-t border-gray-200">
-                    <th scope="row" className="p-4 text-left font-semibold">
-                      <span className="text-xl mb-0">Rating</span>
+                  <tr className="border-t border-[#2a2d3a]">
+                    <th scope="row" className="p-3 md:p-4 text-left font-bold align-middle">
+                      <span className="text-sm md:text-base font-bold mb-0 text-white font-['Poppins',sans-serif]">Rating</span>
                     </th>
-                    <td className="p-4">
-                      <ul className="flex mb-0 list-none p-0">
+                    <td className="p-3 md:p-4 align-middle">
+                      <ul className="flex list-none mb-0 p-0 gap-1">
                         {Array.from(new Array(4)).map((_val, idx) => (
-                          <li className="mr-1" key={idx}>
-                            <FaStar size={16} className="text-yellow-400" />
+                          <li className="inline-block" key={idx}>
+                            <FaStar size={16} className="text-yellow-400 md:w-[18px] md:h-[18px]" />
                           </li>
                         ))}
-                        <li>
-                          <FaRegStar size={16} className="text-yellow-400" />
+                        <li className="inline-block">
+                          <FaRegStar size={16} className="text-yellow-400 md:w-[18px] md:h-[18px]" />
                         </li>
                       </ul>
                     </td>
-                    <td className="p-4">
-                      <ul className="flex mb-0 list-none p-0">
+                    <td className="p-3 md:p-4 align-middle">
+                      <ul className="flex list-none mb-0 p-0 gap-1">
                         {Array.from(new Array(4)).map((_val, idx) => (
-                          <li className="mr-1" key={idx}>
-                            <FaStar size={16} className="text-yellow-400" />
+                          <li className="inline-block" key={idx}>
+                            <FaStar size={16} className="text-yellow-400 md:w-[18px] md:h-[18px]" />
                           </li>
                         ))}
-                        <li>
-                          <FaStarHalfAlt size={15} className="text-yellow-400" />
+                        <li className="inline-block">
+                          <FaStarHalfAlt size={15} className="text-yellow-400 md:w-[18px] md:h-[18px]" />
                         </li>
                       </ul>
                     </td>
-                    <td className="p-4">
-                      <ul className="flex mb-0 list-none p-0">
+                    <td className="p-3 md:p-4 align-middle">
+                      <ul className="flex list-none mb-0 p-0 gap-1">
                         {Array.from(new Array(5)).map((_val, idx) => (
-                          <li className="mr-1" key={idx}>
-                            <FaStar size={16} className="text-yellow-400" />
+                          <li className="inline-block" key={idx}>
+                            <FaStar size={16} className="text-yellow-400 md:w-[18px] md:h-[18px]" />
                           </li>
                         ))}
                       </ul>
                     </td>
                   </tr>
-                  <tr className="border-t border-gray-200">
-                    <th scope="row" className="p-4 text-left font-semibold">
-                      <span className="text-xl mb-0">Floor area</span>
+                  <tr className="border-t border-[#2a2d3a]">
+                    <th scope="row" className="p-3 md:p-4 text-left font-bold align-middle">
+                      <span className="text-sm md:text-base font-bold mb-0 text-white font-['Poppins',sans-serif]">Floor area</span>
                     </th>
-                    <td className="p-4">1700 sq.ft</td>
-                    <td className="p-4">1500 sq.ft</td>
-                    <td className="p-4">1650 sq.ft</td>
+                    <td className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-300">1700 sq.ft</td>
+                    <td className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-300">1500 sq.ft</td>
+                    <td className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-300">1650 sq.ft</td>
                   </tr>
-                  <tr className="border-t border-gray-200">
-                    <th scope="row" className="p-4 text-left font-semibold">
-                      <span className="text-xl mb-0">Bedroom</span>
+                  <tr className="border-t border-[#2a2d3a]">
+                    <th scope="row" className="p-3 md:p-4 text-left font-bold align-middle">
+                      <span className="text-sm md:text-base font-bold mb-0 text-white font-['Poppins',sans-serif]">Bedroom</span>
                     </th>
-                    <td className="p-4">3 Bedroom 4 Beds</td>
-                    <td className="p-4">2 Bedroom 3 Beds</td>
-                    <td className="p-4">1 Bedroom 2 Beds</td>
+                    <td className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-300">3 Bedroom 4 Beds</td>
+                    <td className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-300">2 Bedroom 3 Beds</td>
+                    <td className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-300">1 Bedroom 2 Beds</td>
                   </tr>
-                  <tr className="border-t border-gray-200">
-                    <th scope="row" className="p-4 text-left font-semibold">
-                      <span className="text-xl mb-0">Bathroom</span>
+                  <tr className="border-t border-[#2a2d3a]">
+                    <th scope="row" className="p-3 md:p-4 text-left font-bold align-middle">
+                      <span className="text-sm md:text-base font-bold mb-0 text-white font-['Poppins',sans-serif]">Bathroom</span>
                     </th>
-                    <td className="p-4">2 Showers</td>
-                    <td className="p-4">2 Showers 1 Bathtub</td>
-                    <td className="p-4">1 Shower 1 Bathtub</td>
+                    <td className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-300">2 Showers</td>
+                    <td className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-300">2 Showers 1 Bathtub</td>
+                    <td className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-300">1 Shower 1 Bathtub</td>
                   </tr>
-                  <tr className="border-t border-gray-200">
-                    <th scope="row" className="p-4 text-left font-semibold">
-                      <span className="text-xl mb-0">Swimming Pool</span>
+                  <tr className="border-t border-[#2a2d3a]">
+                    <th scope="row" className="p-3 md:p-4 text-left font-bold align-middle">
+                      <span className="text-sm md:text-base font-bold mb-0 text-white font-['Poppins',sans-serif]">Swimming Pool</span>
                     </th>
-                    <td className="p-4">
-                      <span className="text-3xl text-green-600 mb-0">
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-                        </svg>
+                    <td className="p-3 md:p-4 align-middle">
+                      <span className="text-xl md:text-2xl text-[#10b981] mb-0 inline-block">
+                        <BsCheckLg />
                       </span>
                     </td>
-                    <td className="p-4">
-                      <span className="text-3xl text-red-600 mb-0">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                        </svg>
+                    <td className="p-3 md:p-4 align-middle">
+                      <span className="text-xl md:text-2xl text-[#ef4444] mb-0 inline-block">
+                        <BsXLg />
                       </span>
                     </td>
-                    <td className="p-4">
-                      <span className="text-3xl text-red-600 mb-0">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                        </svg>
+                    <td className="p-3 md:p-4 align-middle">
+                      <span className="text-xl md:text-2xl text-[#ef4444] mb-0 inline-block">
+                        <BsXLg />
                       </span>
                     </td>
                   </tr>
-                  <tr className="border-t border-gray-200">
-                    <th scope="row" className="p-4 text-left font-semibold">
-                      <span className="text-xl mb-0">Air conditioning</span>
+                  <tr className="border-t border-[#2a2d3a]">
+                    <th scope="row" className="p-3 md:p-4 text-left font-bold align-middle">
+                      <span className="text-sm md:text-base font-bold mb-0 text-white font-['Poppins',sans-serif]">Air conditioning</span>
                     </th>
-                    <td className="p-4">
-                      <span className="text-3xl text-green-600 mb-0">
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-                        </svg>
+                    <td className="p-3 md:p-4 align-middle">
+                      <span className="text-xl md:text-2xl text-[#10b981] mb-0 inline-block">
+                        <BsCheckLg />
                       </span>
                     </td>
-                    <td className="p-4">
-                      <span className="text-3xl text-green-600 mb-0">
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-                        </svg>
+                    <td className="p-3 md:p-4 align-middle">
+                      <span className="text-xl md:text-2xl text-[#10b981] mb-0 inline-block">
+                        <BsCheckLg />
                       </span>
                     </td>
-                    <td className="p-4">
-                      <span className="text-3xl text-green-600 mb-0">
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-                        </svg>
+                    <td className="p-3 md:p-4 align-middle">
+                      <span className="text-xl md:text-2xl text-[#10b981] mb-0 inline-block">
+                        <BsCheckLg />
                       </span>
                     </td>
                   </tr>
-                  <tr className="border-t border-gray-200">
-                    <th scope="row" className="p-4 text-left font-semibold">
-                      <span className="text-xl mb-0">Gym</span>
+                  <tr className="border-t border-[#2a2d3a]">
+                    <th scope="row" className="p-3 md:p-4 text-left font-bold align-middle">
+                      <span className="text-sm md:text-base font-bold mb-0 text-white font-['Poppins',sans-serif]">Gym</span>
                     </th>
-                    <td className="p-4">
-                      <span className="text-3xl text-red-600 mb-0">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                        </svg>
+                    <td className="p-3 md:p-4 align-middle">
+                      <span className="text-xl md:text-2xl text-[#ef4444] mb-0 inline-block">
+                        <BsXLg />
                       </span>
                     </td>
-                    <td className="p-4">
-                      <span className="text-3xl text-red-600 mb-0">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                        </svg>
+                    <td className="p-3 md:p-4 align-middle">
+                      <span className="text-xl md:text-2xl text-[#ef4444] mb-0 inline-block">
+                        <BsXLg />
                       </span>
                     </td>
-                    <td className="p-4">
-                      <span className="text-3xl text-green-600 mb-0">
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-                        </svg>
+                    <td className="p-3 md:p-4 align-middle">
+                      <span className="text-xl md:text-2xl text-[#10b981] mb-0 inline-block">
+                        <BsCheckLg />
                       </span>
                     </td>
                   </tr>
-                  <tr className="border-t border-gray-200">
-                    <th scope="row" className="p-4 text-left font-semibold">
-                      <span className="text-xl mb-0">Internet</span>
+                  <tr className="border-t border-[#2a2d3a]">
+                    <th scope="row" className="p-3 md:p-4 text-left font-bold align-middle">
+                      <span className="text-sm md:text-base font-bold mb-0 text-white font-['Poppins',sans-serif]">Internet</span>
                     </th>
-                    <td className="p-4">
-                      <span className="text-3xl text-green-600 mb-0">
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-                        </svg>
+                    <td className="p-3 md:p-4 align-middle">
+                      <span className="text-xl md:text-2xl text-[#10b981] mb-0 inline-block">
+                        <BsCheckLg />
                       </span>
                     </td>
-                    <td className="p-4">
-                      <span className="text-3xl text-green-600 mb-0">
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-                        </svg>
+                    <td className="p-3 md:p-4 align-middle">
+                      <span className="text-xl md:text-2xl text-[#10b981] mb-0 inline-block">
+                        <BsCheckLg />
                       </span>
                     </td>
-                    <td className="p-4">
-                      <span className="text-3xl text-green-600 mb-0">
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-                        </svg>
+                    <td className="p-3 md:p-4 align-middle">
+                      <span className="text-xl md:text-2xl text-[#10b981] mb-0 inline-block">
+                        <BsCheckLg />
                       </span>
                     </td>
                   </tr>
-                  <tr className="border-t border-gray-200">
-                    <th scope="row" className="p-4 text-left font-semibold">
-                      <span className="text-xl mb-0">Actions</span>
+                  <tr className="border-t border-[#2a2d3a]">
+                    <th scope="row" className="p-3 md:p-4 text-left font-bold align-middle">
+                      <span className="text-sm md:text-base font-bold mb-0 text-white font-['Poppins',sans-serif]">Actions</span>
                     </th>
-                    <td className="p-4">
-                      <button className="px-4 py-2 text-sm border border-blue-600 text-blue-600 hover:bg-blue-50 rounded mb-0">
+                    <td className="p-3 md:p-4 align-middle">
+                      <button className="border border-[#6366f1] text-[#8b8bff] hover:bg-[#6366f1] hover:text-white rounded-lg px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-sm mb-0 transition-all duration-150 font-medium focus:shadow-[0_0_0_0.25rem_rgba(99,102,241,0.3)]">
                         Remove
                       </button>
                     </td>
-                    <td className="p-4">
-                      <button className="px-4 py-2 text-sm border border-blue-600 text-blue-600 hover:bg-blue-50 rounded mb-0">
+                    <td className="p-3 md:p-4 align-middle">
+                      <button className="border border-[#6366f1] text-[#8b8bff] hover:bg-[#6366f1] hover:text-white rounded-lg px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-sm mb-0 transition-all duration-150 font-medium focus:shadow-[0_0_0_0.25rem_rgba(99,102,241,0.3)]">
                         Remove
                       </button>
                     </td>
-                    <td className="p-4">
-                      <button className="px-4 py-2 text-sm border border-blue-600 text-blue-600 hover:bg-blue-50 rounded mb-0">
+                    <td className="p-3 md:p-4 align-middle">
+                      <button className="border border-[#6366f1] text-[#8b8bff] hover:bg-[#6366f1] hover:text-white rounded-lg px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-sm mb-0 transition-all duration-150 font-medium focus:shadow-[0_0_0_0.25rem_rgba(99,102,241,0.3)]">
                         Remove
                       </button>
                     </td>

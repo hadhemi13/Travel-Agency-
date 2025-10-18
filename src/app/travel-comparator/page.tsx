@@ -1,4 +1,3 @@
-
 import Footer from "@/components/Footer";
 import Hero from "./components/Hero";
 import OurListings from "./components/OurListings";
@@ -9,10 +8,9 @@ const CompareListing = () => {
   return (
     <>
       <TopNavBar />
-      <main>
+      <main className="pt-12 md:pt-16 bg-white dark:bg-[#222529]">
         <Hero />
         <OurListings />
-        <ActionBox />
       </main>
       <Footer />
     </>
