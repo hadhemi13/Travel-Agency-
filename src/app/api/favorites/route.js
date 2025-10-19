@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
+import { randomUUID } from 'crypto';
+
+// Fonction pour valider un UUID
+const isValidUUID = (str) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+}
 
 // GET - Récupérer les favoris de l'utilisateur
 export async function GET() {
@@ -41,7 +48,11 @@ export async function GET() {
             isDone: false, // Les programmes sauvegardés ne sont pas "terminés"
             isFavorite: true, // Tous les programmes sauvegardés sont des favoris
             createdAt: programme.savedAt,
-            duration: Math.ceil((new Date(programme.endDate) - new Date(programme.startDate)) / (1000 * 60 * 60 * 24))
+            duration: Math.ceil((new Date(programme.endDate) - new Date(programme.startDate)) / (1000 * 60 * 60 * 24)),
+            // Nouveaux champs pour la personnalisation
+            isCustom: programme.isCustom || false,
+            customPrompt: programme.customPrompt || null,
+            parentId: programme.parentId || null
         }));
 
         return NextResponse.json({ favorites: favoritesFormatted });
@@ -62,12 +73,18 @@ export async function POST(request) {
 
         const { programmeId, isFavorite, programmeData } = await request.json();
 
+        // Valider et corriger l'UUID si nécessaire
+        let validProgrammeId = programmeId;
+        if (!isValidUUID(programmeId)) {
+            validProgrammeId = randomUUID();
+        }
+
         if (isFavorite) {
             // Vérifier si déjà sauvegardé
             const existingSaved = await prisma.savedProgramme.findFirst({
                 where: {
                     userId: session.user.id,
-                    programmeId: programmeId
+                    programmeId: validProgrammeId
                 }
             });
 
@@ -84,7 +101,7 @@ export async function POST(request) {
             try {
                 originalProgramme = await prisma.programmesVoyage.findFirst({
                     where: {
-                        id: programmeId,
+                        id: validProgrammeId,
                         userId: session.user.id
                     }
                 });
@@ -96,8 +113,8 @@ export async function POST(request) {
             const savedProgramme = await prisma.savedProgramme.create({
                 data: {
                     userId: session.user.id,
-                    programmeId: programmeId,
-                    originalProgrammeId: originalProgramme ? programmeId : null,
+                    programmeId: validProgrammeId,
+                    originalProgrammeId: originalProgramme ? validProgrammeId : null,
                     title: programmeData?.title || (originalProgramme ? `${originalProgramme.destinationName} - ${originalProgramme.type}` : 'Programme personnalisé'),
                     destinationName: programmeData?.destinationName || originalProgramme?.destinationName || 'Destination inconnue',
                     type: programmeData?.type || originalProgramme?.type || 'Général',
@@ -109,7 +126,7 @@ export async function POST(request) {
                 }
             });
 
-            console.log(`✅ Programme ${programmeId} ajouté aux favoris`);
+            console.log(`✅ Programme ${validProgrammeId} ajouté aux favoris`);
 
             return NextResponse.json({ 
                 success: true,
@@ -124,7 +141,7 @@ export async function POST(request) {
             const deletedProgramme = await prisma.savedProgramme.deleteMany({
                 where: {
                     userId: session.user.id,
-                    programmeId: programmeId
+                    programmeId: validProgrammeId
                 }
             });
 
@@ -132,12 +149,11 @@ export async function POST(request) {
                 return NextResponse.json({ error: 'Programme non trouvé dans les favoris' }, { status: 404 });
             }
 
-            console.log(`✅ Programme ${programmeId} retiré des favoris`);
 
             return NextResponse.json({ 
                 success: true,
                 programme: {
-                    id: programmeId,
+                    id: validProgrammeId,
                     isFavorite: false
                 }
             });

@@ -10,10 +10,6 @@ interface FilterState {
     type: string
     priceMin: string
     priceMax: string
-    status: string
-    duration: string
-    travelFrom: string
-    travelTo: string
 }
 
 const Hero = ({ filters, setFilters, totalTours, favoriteTours, showFavorites = false }: {
@@ -177,73 +173,10 @@ const Hero = ({ filters, setFilters, totalTours, favoriteTours, showFavorites = 
 
                         {/* Advanced Filters */}
                         {showFilters && (
-                            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-[rgba(255,255,255,0.07)] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
-                                {/* Status Filter */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-gray-700 dark:text-white">
-                                        📊 Statut du tour
-                                    </label>
-                                    <div className="flex gap-2 flex-wrap">
-                                        {[
-                                            { value: '', label: 'Tous' },
-                                            { value: 'completed', label: '✅ Completed' },
-                                            { value: 'upcoming', label: '⏳ Upcoming' },
-                                            { value: 'cancelled', label: '❌ Cancelled' }
-                                        ].map((status) => (
-                                            <button
-                                                key={status.value}
-                                                onClick={() => setFilters({ ...filters, status: status.value })}
-                                                className={`px-3 py-2 rounded-lg font-medium transition-all duration-300 ${filters.status === status.value
-                                                    ? 'bg-green-600 dark:bg-[#8e85e6] text-white shadow-lg'
-                                                    : 'bg-gray-100 dark:bg-[#2a2c31] text-gray-700 dark:text-[#b0b0b8] hover:bg-gray-200 dark:hover:bg-[#464950]'
-                                                    }`}
-                                            >
-                                                {status.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Duration Filter */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-gray-700 dark:text-white">
-                                        ⏱️ Durée du tour
-                                    </label>
-                                    <select
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-[rgba(255,255,255,0.07)] bg-white dark:bg-[#2a2c31] rounded-lg focus:border-green-600 dark:focus:border-[#8e85e6] focus:outline-none transition-colors text-gray-900 dark:text-[#b0b0b8]"
-                                        value={filters.duration}
-                                        onChange={(e) => setFilters({ ...filters, duration: e.target.value })}
-                                    >
-                                        <option value="">Toutes les durées</option>
-                                        <option value="1-3">1-3 jours</option>
-                                        <option value="4-7">4-7 jours</option>
-                                        <option value="8-14">8-14 jours</option>
-                                        <option value="15+">15+ jours</option>
-                                    </select>
-                                </div>
-
-                                {/* Travel Period */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-gray-700 dark:text-white">
-                                        🗓️ Période de voyage
-                                    </label>
-                                    <div className="space-y-2">
-                                        <input
-                                            type="date"
-                                            placeholder="Date de début"
-                                            className="w-full px-4 py-2 border border-gray-300 dark:border-[rgba(255,255,255,0.07)] bg-white dark:bg-[#2a2c31] rounded-lg focus:border-green-600 dark:focus:border-[#8e85e6] focus:outline-none text-gray-900 dark:text-[#b0b0b8]"
-                                            value={filters.travelFrom}
-                                            onChange={(e) => setFilters({ ...filters, travelFrom: e.target.value })}
-                                        />
-                                        <input
-                                            type="date"
-                                            placeholder="Date de fin"
-                                            className="w-full px-4 py-2 border border-gray-300 dark:border-[rgba(255,255,255,0.07)] bg-white dark:bg-[#2a2c31] rounded-lg focus:border-green-600 dark:focus:border-[#8e85e6] focus:outline-none text-gray-900 dark:text-[#b0b0b8]"
-                                            value={filters.travelTo}
-                                            onChange={(e) => setFilters({ ...filters, travelTo: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
+                            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-[rgba(255,255,255,0.07)] animate-fadeIn">
+                                <p className="text-center text-gray-500 dark:text-gray-400">
+                                    Filtres avancés disponibles prochainement
+                                </p>
                             </div>
                         )}
                     </div>

@@ -5,6 +5,8 @@ import { useSession } from 'next-auth/react'
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa'
 import { tourHistory } from '../../data'
 import TourCard from './TourCard'
+import TourCardWithCustomize from './TourCardWithCustomize'
+import CustomizeButton from '@/components/CustomizeButton'
 
 interface FavoriteProgramme {
     id: string;
@@ -45,6 +47,7 @@ const TourCardList = ({ showFavorites = false, onFavoriteChange }: TourCardListP
         }
     }, [status, showFavorites]);
 
+
     const fetchFavorites = async () => {
         try {
             setLoading(true);
@@ -66,6 +69,11 @@ const TourCardList = ({ showFavorites = false, onFavoriteChange }: TourCardListP
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleCustomize = (customizedProgramme: any) => {
+        // Rafraîchir la liste des favoris après personnalisation
+        fetchFavorites();
     };
 
     const formatDate = (dateString: string) => {
@@ -187,7 +195,7 @@ const TourCardList = ({ showFavorites = false, onFavoriteChange }: TourCardListP
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header with Result Count and Sort */}
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-center justify-between mb-6">
-                    <div className="xl:col-span-8">
+                    <div className="xl:col-span-6">
                         <h5 className="text-lg font-semibold mb-0 text-gray-900 dark:text-white">
                             {showFavorites ? (
                                 <>Affichage de {startIndex + 1}-{Math.min(endIndex, sortedTours.length)} sur {sortedTours.length} favori{sortedTours.length > 1 ? 's' : ''}</>
@@ -196,7 +204,7 @@ const TourCardList = ({ showFavorites = false, onFavoriteChange }: TourCardListP
                             )}
                         </h5>
                     </div>
-                    <div className="xl:col-span-2">
+                    <div className="xl:col-span-4 xl:col-start-9">
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
@@ -213,7 +221,16 @@ const TourCardList = ({ showFavorites = false, onFavoriteChange }: TourCardListP
                 {/* Tours Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
                     {currentTours.map((tour) => (
-                        <TourCard key={tour.id} tour={tour} />
+                        showFavorites ? (
+                            <TourCardWithCustomize
+                                key={tour.id}
+                                tour={tour}
+                                onDelete={() => fetchFavorites()}
+                                onCustomize={handleCustomize}
+                            />
+                        ) : (
+                            <TourCard key={tour.id} tour={tour} />
+                        )
                     ))}
                 </div>
 

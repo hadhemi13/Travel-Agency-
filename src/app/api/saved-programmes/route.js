@@ -41,7 +41,11 @@ export async function GET() {
             isDone: false, // Les programmes sauvegardés ne sont pas "terminés"
             isFavorite: true, // Tous les programmes sauvegardés sont des favoris
             createdAt: programme.savedAt,
-            duration: Math.ceil((new Date(programme.endDate) - new Date(programme.startDate)) / (1000 * 60 * 60 * 24))
+            duration: Math.ceil((new Date(programme.endDate) - new Date(programme.startDate)) / (1000 * 60 * 60 * 24)),
+            // Nouveaux champs pour la personnalisation
+            isCustom: programme.isCustom || false,
+            customPrompt: programme.customPrompt || null,
+            parentId: programme.parentId || null
         }));
 
         return NextResponse.json({ 

@@ -8,11 +8,7 @@ const ToursClient = () => {
                 destination: '',
                 type: '',
                 priceMin: '',
-                priceMax: '',
-                status: '',
-                duration: '',
-                travelFrom: '',
-                travelTo: ''
+                priceMax: ''
             }}
             setFilters={() => { }}
             totalTours={0}

@@ -45,6 +45,12 @@ const LeftPanel = () => {
             icon: BsHeart,
         },
         {
+            key: 'acc-user-favorites',
+            label: 'Mes Programmes Favoris',
+            url: '/user-profile/favorites',
+            icon: BsHeart,
+        },
+        {
             key: 'acc-user-settings',
             label: t('nav.settings'),
             url: '/user-profile/settings',
