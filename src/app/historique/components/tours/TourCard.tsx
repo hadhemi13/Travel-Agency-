@@ -3,7 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { FaCalendarAlt } from 'react-icons/fa'
 import { FaHotel, FaPersonSkating, FaPlane } from 'react-icons/fa6'
-import { TourHistoryType } from '../data'
+import { TourHistoryType } from '../../data'
 
 const TourCard = ({ tour }: { tour: TourHistoryType }) => {
     const { benefits, travelDate, bookingDate, days, name, nights, price, type, status, image, bookingReference } = tour

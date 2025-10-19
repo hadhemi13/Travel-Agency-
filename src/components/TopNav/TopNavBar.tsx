@@ -10,6 +10,7 @@ import { useUserProfile } from '@/hooks/useUserProfile'
 import {
     BsBell,
     BsBookmarkCheck,
+    BsChevronDown,
     BsGear,
     BsHeart,
     BsInfoCircle,
@@ -28,12 +29,14 @@ const TopNavBar = () => {
     const { user } = useUserProfile()
     const [notificationOpen, setNotificationOpen] = useState(false)
     const [profileOpen, setProfileOpen] = useState(false)
+    const [favoritesOpen, setFavoritesOpen] = useState(false)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [scrollY, setScrollY] = useState(0)
     const pathname = usePathname()
 
     const notificationRef = useRef<HTMLDivElement>(null)
     const profileRef = useRef<HTMLDivElement>(null)
+    const favoritesRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         const handleScroll = () => {
@@ -50,6 +53,9 @@ const TopNavBar = () => {
             }
             if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
                 setProfileOpen(false)
+            }
+            if (favoritesRef.current && !favoritesRef.current.contains(event.target as Node)) {
+                setFavoritesOpen(false)
             }
         }
         document.addEventListener('mousedown', handleClickOutside)
@@ -112,16 +118,44 @@ const TopNavBar = () => {
                             href="/user-profile/wishlist"
                             className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group ${pathname === '/user-profile/wishlist' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
                         >
-                            <span className="relative z-10">Favoris</span>
+                            <span className="relative z-10">Historique</span>
                             {pathname === '/user-profile/wishlist' && <span className="absolute inset-0 bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] rounded-lg opacity-80"></span>}
                         </Link>
-                        <Link
-                            href="/historique"
-                            className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group ${pathname === '/historique' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
-                        >
-                            <span className="relative z-10">Historique</span>
-                            {pathname === '/historique' && <span className="absolute inset-0 bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] rounded-lg opacity-80"></span>}
-                        </Link>
+                        {/* Favoris Dropdown */}
+                        <div className="relative" ref={favoritesRef}>
+                            <button
+                                onClick={() => setFavoritesOpen(!favoritesOpen)}
+                                className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group flex items-center gap-2 ${pathname === '/historique/hotels' || pathname === '/historique/tours' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
+                            >
+                                <span className="relative z-10">Favoris</span>
+                                <BsChevronDown className={`text-xs transition-transform duration-300 ${favoritesOpen ? 'rotate-180' : ''}`} />
+                                {(pathname === '/historique/hotels' || pathname === '/historique/tours') && <span className="absolute inset-0 bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] rounded-lg opacity-80"></span>}
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            {favoritesOpen && (
+                                <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-[#222529] rounded-xl shadow-2xl dark:shadow-[0_1rem_3rem_rgba(0,0,0,0.5)] border border-gray-200 dark:border-[rgba(255,255,255,0.07)] animate-fadeIn overflow-hidden backdrop-blur-lg z-50">
+                                    <div className="py-2">
+                                        <Link
+                                            href="/historique/hotels"
+                                            className={`flex items-center gap-3 px-4 py-3 text-[15px] font-medium transition-all duration-300 hover:bg-gray-100 dark:hover:bg-[#2a2c31] ${pathname === '/historique/hotels' ? 'text-[#8e85e6] bg-[#8e85e6]/10' : 'text-gray-700 dark:text-[#b0b0b8]'}`}
+                                            onClick={() => setFavoritesOpen(false)}
+                                        >
+                                            <span className="text-lg">🏨</span>
+                                            <span>Hotels</span>
+                                        </Link>
+                                        <Link
+                                            href="/historique/tours"
+                                            className={`flex items-center gap-3 px-4 py-3 text-[15px] font-medium transition-all duration-300 hover:bg-gray-100 dark:hover:bg-[#2a2c31] ${pathname === '/historique/tours' ? 'text-[#8e85e6] bg-[#8e85e6]/10' : 'text-gray-700 dark:text-[#b0b0b8]'}`}
+                                            onClick={() => setFavoritesOpen(false)}
+                                        >
+                                            <span className="text-lg">🗺️</span>
+                                            <span>Tours</span>
+                                        </Link>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         <Link
                             href="/hotels"
                             className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group ${pathname === '/hotels' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
@@ -379,12 +413,24 @@ const TopNavBar = () => {
                                 >
                                     Comparateur
                                 </Link>
-                                <Link
-                                    href="/user-profile/wishlist"
-                                    className={`block px-5 py-3.5 font-medium rounded-xl transition-all duration-300 ${pathname === '/user-profile/wishlist' ? 'text-white bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] shadow-lg' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
-                                >
-                                    Favoris
-                                </Link>
+                                {/* Favoris Mobile */}
+                                <div className="px-5 py-3.5">
+                                    <p className="text-sm font-semibold text-[#8e85e6] mb-2">Favoris</p>
+                                    <div className="ml-4 space-y-1">
+                                        <Link
+                                            href="/historique/hotels"
+                                            className={`block px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 ${pathname === '/historique/hotels' ? 'text-white bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] shadow-lg' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
+                                        >
+                                            🏨 Hotels
+                                        </Link>
+                                        <Link
+                                            href="/historique/tours"
+                                            className={`block px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 ${pathname === '/historique/tours' ? 'text-white bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] shadow-lg' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
+                                        >
+                                            🗺️ Tours
+                                        </Link>
+                                    </div>
+                                </div>
                                 <Link
                                     href="/historique"
                                     className={`block px-5 py-3.5 font-medium rounded-xl transition-all duration-300 ${pathname === '/historique' ? 'text-white bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] shadow-lg' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}

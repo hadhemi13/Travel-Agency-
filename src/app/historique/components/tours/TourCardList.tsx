@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa'
-import { tourHistory } from '../data'
+import { tourHistory } from '../../data'
 import TourCard from './TourCard'
 
 const TourCardList = () => {
@@ -95,8 +95,8 @@ const TourCardList = () => {
                                             setCurrentPage(prev => Math.max(prev - 1, 1))
                                         }}
                                         className={`flex items-center justify-center w-10 h-10 rounded transition-all duration-300 ${currentPage === 1
-                                                ? 'text-gray-400 dark:text-[#5f5f68] cursor-not-allowed'
-                                                : 'text-gray-700 dark:text-[#b0b0b8] hover:bg-blue-50 dark:hover:bg-[#2a2c31] hover:scale-110'
+                                            ? 'text-gray-400 dark:text-[#5f5f68] cursor-not-allowed'
+                                            : 'text-gray-700 dark:text-[#b0b0b8] hover:bg-blue-50 dark:hover:bg-[#2a2c31] hover:scale-110'
                                             }`}
                                         tabIndex={currentPage === 1 ? -1 : 0}
                                     >
@@ -134,8 +134,8 @@ const TourCardList = () => {
                                                     setCurrentPage(page)
                                                 }}
                                                 className={`flex items-center justify-center w-10 h-10 rounded transition-all duration-300 ${currentPage === page
-                                                        ? 'bg-blue-600 dark:bg-[#8e85e6] text-white shadow-lg scale-110'
-                                                        : 'text-gray-700 dark:text-[#b0b0b8] hover:bg-blue-50 dark:hover:bg-[#2a2c31] hover:scale-110'
+                                                    ? 'bg-blue-600 dark:bg-[#8e85e6] text-white shadow-lg scale-110'
+                                                    : 'text-gray-700 dark:text-[#b0b0b8] hover:bg-blue-50 dark:hover:bg-[#2a2c31] hover:scale-110'
                                                     }`}
                                             >
                                                 {page}
@@ -152,8 +152,8 @@ const TourCardList = () => {
                                             setCurrentPage(prev => Math.min(prev + 1, totalPages))
                                         }}
                                         className={`flex items-center justify-center w-10 h-10 rounded transition-all duration-300 ${currentPage === totalPages
-                                                ? 'text-gray-400 dark:text-[#5f5f68] cursor-not-allowed'
-                                                : 'text-gray-700 dark:text-[#b0b0b8] hover:bg-blue-50 dark:hover:bg-[#2a2c31] hover:scale-110'
+                                            ? 'text-gray-400 dark:text-[#5f5f68] cursor-not-allowed'
+                                            : 'text-gray-700 dark:text-[#b0b0b8] hover:bg-blue-50 dark:hover:bg-[#2a2c31] hover:scale-110'
                                             }`}
                                     >
                                         <FaAngleRight />

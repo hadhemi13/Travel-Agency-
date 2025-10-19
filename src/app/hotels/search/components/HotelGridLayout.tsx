@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
 import { BsSliders, BsGridFill, BsListUl, BsStarFill } from "react-icons/bs";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 interface Hotel {
   hotel_id?: string;
@@ -27,6 +29,7 @@ interface HotelGridLayoutProps {
 }
 
 const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
+  const { data: session } = useSession();
   const searchParams = useSearchParams();
   const checkIn = searchParams.get("checkIn") || "";
   const checkOut = searchParams.get("checkOut") || "";
@@ -36,6 +39,9 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [priceRange, setPriceRange] = useState<string[]>(["700", "1500"]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [favoriteHotels, setFavoriteHotels] = useState<Set<string>>(new Set());
+  const [savingHotel, setSavingHotel] = useState<string | null>(null);
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const hotelsPerPage = 6;
 
   const toggle = () => setIsOpen(!isOpen);
@@ -50,6 +56,118 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
   const onFilterSubmit = (data: any) => {
     console.log("Filter submitted:", data);
     // TODO: Filter hotels based on data.hotelName, priceRange, etc., and reset pagination
+  };
+
+  // Charger les hôtels favoris depuis la base de données
+  useEffect(() => {
+    const loadFavoriteHotels = async () => {
+      if (session?.user && (session.user as any).id) {
+        try {
+          const response = await fetch('/api/hotels/save');
+          if (response.ok) {
+            const data = await response.json() as any;
+            // L'API peut retourner {hotels: [...]} ou directement [...]
+            const hotels = (data.hotels || data || []) as any[];
+            // CORRECTION: Utiliser hotel_id au lieu de hotelId pour correspondre à votre structure
+            const favoriteHotelIds = new Set(
+              hotels
+                .map((hotel: any) => hotel.hotel_id || hotel.hotelId)
+                .filter((id: string) => id) // Filtrer les undefined
+            );
+            setFavoriteHotels(favoriteHotelIds);
+            console.log('Favoris chargés:', Array.from(favoriteHotelIds));
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement des favoris:', error);
+        }
+      }
+    };
+
+    loadFavoriteHotels();
+  }, [session]);
+
+  const handleFavoriteHotel = async (hotel: Hotel, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!session?.user || !(session.user as any).id) {
+      setSaveMessage({ type: 'error', text: 'Veuillez vous connecter pour gérer vos favoris' });
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
+
+    if (!hotel.hotel_id) {
+      setSaveMessage({ type: 'error', text: 'ID de l\'hôtel manquant' });
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
+
+    setSavingHotel(hotel.hotel_id);
+
+    const isCurrentlyFavorite = favoriteHotels.has(hotel.hotel_id);
+
+    try {
+      if (isCurrentlyFavorite) {
+        // Supprimer des favoris
+        const response = await fetch(`/api/hotels/save?hotelId=${hotel.hotel_id}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          setFavoriteHotels(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(hotel.hotel_id!);
+            return newSet;
+          });
+          setSaveMessage({ type: 'success', text: 'Hôtel supprimé des favoris !' });
+        } else {
+          setSaveMessage({ type: 'error', text: 'Erreur lors de la suppression des favoris' });
+        }
+      } else {
+        // Ajouter aux favoris
+        const response = await fetch('/api/hotels/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            hotel_id: hotel.hotel_id,
+            name: hotel.hotel_name,
+            address: hotel.address,
+            rating: hotel.review_score || 0,
+            reviewCount: 0,
+            price: hotel.price || 0,
+            currency: hotel.currency || 'USD',
+            image: hotel.image,
+            amenities: ['WiFi', 'Pool', 'Gym', 'Restaurant'],
+            description: `Hôtel ${hotel.hotel_name} situé à ${hotel.address}`,
+            checkIn: checkIn || undefined,
+            checkOut: checkOut || undefined,
+            adults: parseInt(adults),
+            rooms: parseInt(rooms)
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setFavoriteHotels(prev => new Set([...prev, hotel.hotel_id!]));
+          setSaveMessage({ type: 'success', text: 'Hôtel ajouté aux favoris !' });
+        } else {
+          if (data.alreadySaved) {
+            setSaveMessage({ type: 'error', text: 'Cet hôtel est déjà dans vos favoris' });
+          } else {
+            setSaveMessage({ type: 'error', text: data.error || 'Erreur lors de l\'ajout aux favoris' });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors de la gestion des favoris:', error);
+      setSaveMessage({ type: 'error', text: 'Erreur de connexion' });
+    } finally {
+      setSavingHotel(null);
+      setTimeout(() => setSaveMessage(null), 3000);
+    }
   };
 
   const totalPages = Math.ceil(hotels.length / hotelsPerPage);
@@ -81,6 +199,24 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
 
   return (
     <section className="bg-gray-900 text-white min-h-screen">
+      {/* Message de notification */}
+      {saveMessage && (
+        <div className={`fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${saveMessage.type === 'success'
+          ? 'bg-green-600 text-white'
+          : 'bg-red-600 text-white'
+          }`}>
+          <div className="flex items-center gap-2">
+            <span>{saveMessage.text}</span>
+            <button
+              onClick={() => setSaveMessage(null)}
+              className="ml-2 text-white hover:text-gray-200"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4">
         {/* ====== FILTER BAR ====== */}
         <div className="sticky top-0 z-10 shadow-md bg-gray-900">
@@ -139,7 +275,6 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
                     />
                   </div>
                   <div className="h-2 bg-gray-600 rounded mt-2" />
-                  {/* TODO: Add interactive slider, e.g., import ReactSlider and update priceRange state */}
                 </div>
                 <div>
                   <label className="block text-gray-300 mb-1">Popular Filters</label>
@@ -165,7 +300,9 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
               <p className="text-gray-400 text-center col-span-full">No hotels found</p>
             ) : (
               currentHotels.map((hotel, idx) => {
-                console.log(`Rendering hotel ${hotel.hotel_name} with image: ${hotel.image}`);
+                const isFavorite = favoriteHotels.has(hotel.hotel_id || '');
+                const isSaving = savingHotel === hotel.hotel_id;
+
                 return (
                   <Link
                     key={hotel.hotel_id || idx}
@@ -179,7 +316,6 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
                           alt={hotel.hotel_name}
                           className="w-full h-52 object-cover transition-transform duration-300 group-hover:scale-105"
                           onError={(e) => {
-                            console.log(`Image load failed for ${hotel.hotel_name}, switching to placeholder. Original URL: ${hotel.image}`);
                             e.currentTarget.src = "https://via.placeholder.com/400x300?text=Image+Error";
                           }}
                         />
@@ -188,6 +324,25 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
                             ⭐ {hotel.review_score}/10
                           </div>
                         )}
+
+                        {/* Bouton Favori */}
+                        <button
+                          onClick={(e) => handleFavoriteHotel(hotel, e)}
+                          disabled={isSaving}
+                          className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-200 ${isFavorite || isSaving
+                              ? 'bg-red-500 text-white hover:bg-red-600 scale-110'
+                              : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm'
+                            }`}
+                          title={isFavorite ? 'Supprimer des favoris' : 'Ajouter aux favoris'}
+                        >
+                          {isSaving ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          ) : isFavorite ? (
+                            <FaHeart size={16} />
+                          ) : (
+                            <FaRegHeart size={16} />
+                          )}
+                        </button>
                       </div>
 
                       {/* CONTENT */}
@@ -206,15 +361,8 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
                             <span className="text-gray-400">Price N/A</span>
                           )}
 
-                          <span className="text-blue-400 text-sm font-medium group-hover:text-white transition-colors flex items-center gap-1">
+                          <span className="text-blue-400 text-sm font-medium group-hover:text-white transition-colors">
                             View Details
-                            <Image
-                              src="/icons/book.png"  // Ensure this file exists in /public/icons
-                              alt="details"
-                              width={16}
-                              height={16}
-                              unoptimized  // If it's not an optimized image (e.g., PNG icon)
-                            />
                           </span>
                         </div>
                       </div>
@@ -234,8 +382,8 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                     className={`p-2 rounded ${currentPage === 1
-                        ? "text-gray-500 cursor-not-allowed"
-                        : "text-gray-300 hover:text-blue-400"
+                      ? "text-gray-500 cursor-not-allowed"
+                      : "text-gray-300 hover:text-blue-400"
                       }`}
                   >
                     <FaAngleLeft />
@@ -247,8 +395,8 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
                     <button
                       onClick={() => handlePageChange(page)}
                       className={`px-3 py-1 rounded ${currentPage === page
-                          ? "bg-blue-600 text-white"
-                          : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-700 hover:text-white"
                         }`}
                     >
                       {page}
@@ -261,8 +409,8 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     className={`p-2 rounded ${currentPage === totalPages
-                        ? "text-gray-500 cursor-not-allowed"
-                        : "text-gray-300 hover:text-blue-400"
+                      ? "text-gray-500 cursor-not-allowed"
+                      : "text-gray-300 hover:text-blue-400"
                       }`}
                   >
                     <FaAngleRight />

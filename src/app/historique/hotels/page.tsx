@@ -1,11 +1,10 @@
 import TopNavBar from '@/components/TopNav/TopNavBar'
 import Footer from '@/components/Footer'
-import Hero from './components/Hero'
-import TourCardList from './components/TourCardList'
+import HistoriqueClient from '../components/hotels/HistoriqueClient'
 
 export const metadata = {
-    title: 'Tours History - Your Travel Bookings',
-    description: 'View your complete travel booking history, including completed, upcoming, and cancelled tours.',
+    title: 'Saved Hotels - Your Travel Favorites',
+    description: 'View your saved hotels and travel favorites.',
 }
 
 const HistoriquePage = () => {
@@ -13,8 +12,7 @@ const HistoriquePage = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-[#222529]">
             <TopNavBar />
             <main className="pt-20">
-                <Hero />
-                <TourCardList />
+                <HistoriqueClient />
             </main>
             <Footer />
         </div>
