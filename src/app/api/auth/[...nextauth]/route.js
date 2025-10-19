@@ -3,7 +3,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
-const authOptions = {
+// ✅ Export authOptions so it can be used in other API routes
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -17,8 +18,8 @@ const authOptions = {
         }
 
         try {
-          const user = await prisma.user.findUnique({ 
-            where: { email: credentials.email } 
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email }
           });
           
           if (!user) {
@@ -26,7 +27,7 @@ const authOptions = {
           }
           
           const isValid = await bcrypt.compare(
-            credentials.password, 
+            credentials.password,
             user.passwordHash
           );
           
@@ -38,11 +39,10 @@ const authOptions = {
           return {
             id: user.id,
             email: user.email,
-            name: user.nom, 
-            profileImage: user.avatarUrl, 
+            name: user.nom,
+            profileImage: user.avatarUrl,
             telephone: user.telephone,
             adresse: user.adresse,
-           
             emailVerified: user.emailVerified,
           };
         } catch (error) {

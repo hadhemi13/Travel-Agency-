@@ -12,10 +12,10 @@ const TravelSimulator = () => {
   const router = useRouter()
   const [budget, setBudget] = useState(100)
   const [voyageurs, setVoyageurs] = useState(1)
-  const [destination, setDestination] = useState('Paris, France')
+  const [destination, setDestination] = useState('')
   const [typeVoyage, setTypeVoyage] = useState('Aventure')
-  const [dateDebut, setDateDebut] = useState<Date | undefined>(undefined)
-  const [dateFin, setDateFin] = useState<Date | undefined>(undefined)
+  const [dateDebut, setDateDebut] = useState<Date | null>(null)
+  const [dateFin, setDateFin] = useState<Date | null>(null)
   const [darkMode, setDarkMode] = useState(false)
 
   // Nouvelles caractéristiques
@@ -23,7 +23,23 @@ const TravelSimulator = () => {
   const [preferenceRepas, setPreferenceRepas] = useState('')
   const [rythmeSejour, setRythmeSejour] = useState('')
 
-  const destinations = ['Paris, France', 'Tokyo, Japon', 'New York, USA', 'Londres, UK', 'Dubaï, EAU']
+  // Suggestions de destinations populaires
+  const suggestedDestinations = [
+    'Paris, France',
+    'Tokyo, Japon',
+    'New York, USA',
+    'Londres, UK',
+    'Dubaï, EAU',
+    'Rome, Italie',
+    'Barcelone, Espagne',
+    'Bali, Indonésie',
+    'Istanbul, Turquie',
+    'Amsterdam, Pays-Bas'
+  ]
+
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [filteredSuggestions, setFilteredSuggestions] = useState(suggestedDestinations)
+
   const typesVoyage = ['Aventure', 'Plage', 'Désert', 'Histoire', 'Culture', 'Relaxation']
 
   const optionsDuree = ['Courtes excursions ⏱️', 'Demi-journée 🌄', 'Journée complète 🗓️']
@@ -48,7 +64,33 @@ const TravelSimulator = () => {
     }
   }, [darkMode])
 
+  const handleDestinationChange = (value: string) => {
+    setDestination(value)
+    
+    // Filter suggestions based on input
+    if (value.trim()) {
+      const filtered = suggestedDestinations.filter(dest =>
+        dest.toLowerCase().includes(value.toLowerCase())
+      )
+      setFilteredSuggestions(filtered)
+      setShowSuggestions(true)
+    } else {
+      setFilteredSuggestions(suggestedDestinations)
+      setShowSuggestions(false)
+    }
+  }
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setDestination(suggestion)
+    setShowSuggestions(false)
+  }
+
   const handleSimuler = () => {
+    if (!destination.trim()) {
+      alert('Veuillez entrer une destination')
+      return
+    }
+
     const query = new URLSearchParams({
       destination,
       typeVoyage,
@@ -131,46 +173,92 @@ const TravelSimulator = () => {
                     </div>
                   </div>
 
-                  {/* Destination */}
+                  {/* Destination - Input with Autocomplete */}
                   <div className="relative">
-                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-white' : 'text-gray-700'}`}>Destination</label>
-                    <select
-                      value={destination}
-                      onChange={(e) => setDestination(e.target.value)}
-                      className={inputClass + ' pl-12'}
-                    >
-                      {destinations.map((loc, idx) => (
-                        <option key={idx} value={loc}>{loc}</option>
-                      ))}
-                    </select>
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><BsGeoAlt size={20} /></span>
+                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-white' : 'text-gray-700'}`}>
+                      Destination
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={destination}
+                        onChange={(e) => handleDestinationChange(e.target.value)}
+                        onFocus={() => setShowSuggestions(true)}
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                        className={inputClass + ' pl-12'}
+                        placeholder="Ex: Paris, France ou Tokyo, Japon..."
+                      />
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                        <BsGeoAlt size={20} />
+                      </span>
+                    </div>
+
+                    {/* Suggestions Dropdown */}
+                    {showSuggestions && filteredSuggestions.length > 0 && (
+                      <div className={`absolute z-50 w-full mt-2 rounded-xl shadow-lg overflow-hidden ${
+                        darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
+                      }`}>
+                        <div className="max-h-60 overflow-y-auto">
+                          {filteredSuggestions.map((suggestion, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => handleSuggestionClick(suggestion)}
+                              className={`w-full text-left px-4 py-3 transition-colors ${
+                                darkMode 
+                                  ? 'hover:bg-gray-700 text-gray-200' 
+                                  : 'hover:bg-gray-100 text-gray-800'
+                              } border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} last:border-b-0`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <BsGeoAlt className="text-purple-500" size={16} />
+                                <span>{suggestion}</span>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Dates & Type de voyage */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <div className="relative">
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-white' : 'text-gray-700'}`}>
+                        Date de début
+                      </label>
                       <Flatpickr
-                        value={dateDebut || undefined}
-                        onChange={(dates) => setDateDebut(dates[0] || undefined)}
+                        value={dateDebut || ''}
+                        onChange={(dates) => setDateDebut(dates[0] || null)}
                         className={inputClass + ' pl-12 cursor-pointer'}
-                        options={{ dateFormat: 'd M y' }}
-                        placeholder="Date de début"
+                        options={{ dateFormat: 'd M y', minDate: 'today' }}
+                        placeholder="Choisir une date"
                       />
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><BsCalendar size={20} /></span>
+                      <span className="absolute left-4 bottom-4 text-gray-400">
+                        <BsCalendar size={20} />
+                      </span>
                     </div>
 
                     <div className="relative">
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-white' : 'text-gray-700'}`}>
+                        Date de fin
+                      </label>
                       <Flatpickr
-                        value={dateFin || undefined}
-                        onChange={(dates) => setDateFin(dates[0] || undefined)}
+                        value={dateFin || ''}
+                        onChange={(dates) => setDateFin(dates[0] || null)}
                         className={inputClass + ' pl-12 cursor-pointer'}
-                        options={{ dateFormat: 'd M y' }}
-                        placeholder="Date de fin"
+                        options={{ dateFormat: 'd M y', minDate: dateDebut || 'today' }}
+                        placeholder="Choisir une date"
                       />
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><BsCalendar size={20} /></span>
+                      <span className="absolute left-4 bottom-4 text-gray-400">
+                        <BsCalendar size={20} />
+                      </span>
                     </div>
 
                     <div className="relative">
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-white' : 'text-gray-700'}`}>
+                        Type de voyage
+                      </label>
                       <select
                         value={typeVoyage}
                         onChange={(e) => setTypeVoyage(e.target.value)}
