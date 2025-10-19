@@ -17,6 +17,8 @@ import {
   BsInfoCircle,
   BsDoorOpen,
 } from "react-icons/bs";
+// import router from "next/router";
+import { useRouter } from "next/navigation";
 
 // Updated Type definitions for hotel details based on the API response structure
 interface PriceAmount {
@@ -342,6 +344,8 @@ export default function HotelDetail() {
   const adults = searchParams.get("adults") || "1";
   const rooms = searchParams.get("rooms") || "1";
 
+
+
   useEffect(() => {
     async function fetchHotelDetails() {
       try {
@@ -408,6 +412,69 @@ export default function HotelDetail() {
   // Rooms: Combine block and rooms data
   const roomBlocks = hotel.block || [];
   const roomDetails = hotel.rooms || {};
+
+
+  const router = useRouter();
+
+
+  const handleReservation = () => {
+    // Stocker les données complètes de l'hôtel dans sessionStorage
+    const reservationData = {
+      hotel: {
+        id: id,
+        name: hotel.hotel_name,
+        name_trans: hotel.hotel_name_trans,
+        address: hotel.address,
+        city: hotel.city,
+        city_trans: hotel.city_trans,
+        review_score: hotel.review_score || hotel.rawData?.reviewScore,
+        review_score_word: hotel.review_score_word,
+        review_nr: hotel.review_nr || hotel.rawData?.reviewCount,
+        accommodation_type: hotel.accommodation_type_name,
+        photos: allPhotos.slice(0, 10), // Limiter le nombre de photos
+        facilities: hotel.facilities_block?.facilities || [],
+        languages: hotel.spoken_languages || hotel.languages_spoken?.languagecode || [],
+      },
+      rooms: roomBlocks.map((blk) => {
+        const room = roomDetails[blk.room_id.toString()];
+        return {
+          block_id: blk.block_id,
+          name: blk.name || blk.room_name,
+          description: room?.description,
+          max_occupancy: blk.max_occupancy,
+          room_surface_m2: blk.room_surface_in_m2,
+          room_surface_feet2: blk.room_surface_in_feet2,
+          mealplan: blk.mealplan,
+          breakfast_included: blk.breakfast_included,
+          refundable: blk.refundable,
+          photos: room?.photos?.slice(0, 3) || [], // 3 premières photos par room
+          highlights: room?.highlights || [],
+          bed_configurations: room?.bed_configurations || [],
+          facilities: room?.facilities || [],
+        };
+      }),
+      pricing: {
+        totalPrice,
+        currency,
+        taxes,
+        discountedAmount,
+        strikethroughAmount,
+        netAmount,
+      },
+      booking: {
+        checkIn,
+        checkOut,
+        adults,
+        rooms,
+      },
+    };
+
+    sessionStorage.setItem('reservationData', JSON.stringify(reservationData));
+
+    router.push(
+        `/reservation?hotelId=${id}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&rooms=${rooms}`
+    );
+  };
 
   return (
     <>
@@ -625,7 +692,7 @@ export default function HotelDetail() {
                           ))}
                         </ul>
                       </div>
-                      <button className="mt-4 w-full bg-[#8e85e6] text-white py-2 rounded hover:bg-[#7a6deb] transition">
+                      <button className="mt-4 w-full bg-blue-600 dark:bg-blue-700 text-white py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition" onClick={handleReservation}>
                         Select Room
                       </button>
                     </div>
