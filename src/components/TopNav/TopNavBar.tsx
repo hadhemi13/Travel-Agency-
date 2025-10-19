@@ -18,7 +18,6 @@ import {
     BsPower,
     BsSun,
 } from 'react-icons/bs'
-import { FaPlane } from 'react-icons/fa'
 import { notificationData } from './data'
 
 
@@ -97,16 +96,22 @@ const TopNavBar = () => {
                         </div>
                     </button>
 
-                    {/* Logo - seulement sur desktop, à droite */}
+                    {/* Logo - seulement sur desktop, à gauche */}
                     <Link href="/" className="hidden lg:flex items-center gap-3 group">
-                        <div className="w-11 h-11 bg-gradient-to-br from-[#8e85e6] via-[#7a6deb] to-[#6f42c1] rounded-xl flex items-center justify-center shadow-lg transform group-hover:scale-105 transition-all duration-300 group-hover:shadow-[#8e85e6]/50">
-                            <FaPlane className="text-white text-xl rotate-45 group-hover:rotate-[60deg] transition-transform duration-300" />
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg transform group-hover:scale-105 transition-all duration-300 group-hover:shadow-[#8e85e6]/50 overflow-hidden">
+                            <Image
+                                src="/assets/images/bg/logo.png"
+                                alt="TripMind Logo"
+                                width={60}
+                                height={60}
+                                className="w-full h-full object-cover"
+                            />
                         </div>
                         <span className="text-white text-2xl font-bold tracking-tight">TripMind</span>
                     </Link>
 
-                    {/* Navigation principale (Desktop) - à gauche */}
-                    <div className="hidden lg:flex items-center flex-1 gap-1.5">
+                    {/* Navigation principale (Desktop) - au centre avec espacement */}
+                    <div className="hidden lg:flex items-center justify-center flex-1 gap-1.5 ml-4">
                         <Link
                             href="/comparateur"
                             className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group ${pathname === '/comparateur' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
@@ -115,6 +120,8 @@ const TopNavBar = () => {
                             {pathname === '/comparateur' && <span className="absolute inset-0 bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] rounded-lg opacity-80"></span>}
                         </Link>
 
+                        {/* Espacement entre Comparateur et le reste */}
+                        <div className="w-2"></div>
 
                         <Link
                             href="/List-trip"
