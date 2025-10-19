@@ -2,6 +2,8 @@ import { StaticImageData } from "next/image";
 
 export type TourHistoryType = {
     id: number;
+    originalId?: string; // ID UUID original pour la navigation
+    programmeId?: string; // ID du programme original
     name: string;
     bookingDate: string;
     travelDate: string;

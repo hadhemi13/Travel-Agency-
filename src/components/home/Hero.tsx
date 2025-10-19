@@ -4,12 +4,12 @@ import SearchBar from "@/components/hotels/SearchBar";
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen bg-gray-950 dark:bg-gray-900 pt-20 pb-32">
+    <section className="relative min-h-screen bg-gray-50 dark:bg-[#222529] pt-20 pb-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Side - Text Content */}
           <div className="space-y-8">
-            <h1 className="text-5xl lg:text-6xl font-bold text-white leading-tight">
+            <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
               Find the top <br />
               <span className="relative inline-block">
                 Hotels nearby.
@@ -19,7 +19,7 @@ export default function Hero() {
                   preserveAspectRatio="none"
                 >
                   <path
-                    className="fill-indigo-600 opacity-70"
+                    className="fill-[#8e85e6] opacity-70"
                     d="M409.9,2.6c-9.7-0.6-19.5-1-29.2-1.5c-3.2-0.2-6.4-0.2-9.7-0.3c-7-0.2-14-0.4-20.9-0.5 
                     c-3.9-0.1-7.8-0.2-11.7-0.3c-1.1,0-2.3,0-3.4,0c-2.5,0-5.1,0-7.6,0c-11.5,0-23,0-34.5,0c-2.7,0-5.5,0.1-8.2,0.1 
                     c-6.8,0.1-13.6,0.2-20.3,0.3c-7.7,0.1-15.3,0.1-23,0.3c-12.4,0.3-24.8,0.6-37.1,0.9c-7.2,0.2-14.3,0.3-21.5,0.6 
@@ -39,23 +39,23 @@ export default function Hero() {
               </span>
             </h1>
 
-            <p className="text-xl text-gray-400 dark:text-gray-300">
+            <p className="text-xl text-gray-600 dark:text-[#b0b0b8]">
               We bring you not only a stay option, but an experience in your
               budget to enjoy the luxury.
             </p>
 
             <div className="flex flex-wrap items-center gap-6">
-              <button className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition duration-200">
+              <button className="px-8 py-3 bg-[#8e85e6] hover:bg-[#7a6deb] text-white font-medium rounded-lg transition duration-200">
                 Discover Now
               </button>
               <Link
                 href="https://www.youtube.com/embed/tXHviS-4ygo"
-                className="flex items-center gap-3 text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 transition"
+                className="flex items-center gap-3 text-gray-600 dark:text-[#b0b0b8] hover:text-gray-900 dark:hover:text-white transition"
               >
                 <div className="relative w-12 h-12">
                   <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
                     <svg
-                      className="w-5 h-5 text-indigo-600"
+                      className="w-5 h-5 text-[#8e85e6]"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -71,7 +71,7 @@ export default function Hero() {
           {/* Right Side - Image */}
           <div className="relative">
             <div className="relative rounded-3xl overflow-hidden">
-              <div className="aspect-[4/3] bg-gradient-to-br from-indigo-900/20 to-purple-900/20 rounded-3xl" />
+              <div className="aspect-[4/3] bg-gradient-to-br from-[#8e85e6]/20 to-[#7a6deb]/20 rounded-3xl" />
             </div>
 
             {/* 24/7 Support Badge */}
@@ -99,8 +99,8 @@ export default function Hero() {
 
         {/* Search Bar */}
         <div className="relative -mb-16 mt-16 max-w-5xl mx-auto">
-          <div className="bg-gray-900 dark:bg-gray-800 shadow-2xl rounded-3xl p-6 border border-gray-800 dark:border-gray-700">
-            <h6 className="text-white text-lg font-semibold mb-4">
+          <div className="bg-white dark:bg-[#2a2c31] shadow-2xl rounded-3xl p-6 border border-gray-200 dark:border-[rgba(255,255,255,0.07)]">
+            <h6 className="text-gray-900 dark:text-white text-lg font-semibold mb-4">
               Check Availability
             </h6>
             <SearchBar />

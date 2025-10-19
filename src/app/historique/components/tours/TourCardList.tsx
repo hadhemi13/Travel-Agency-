@@ -1,17 +1,112 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa'
 import { tourHistory } from '../../data'
 import TourCard from './TourCard'
 
-const TourCardList = () => {
+interface FavoriteProgramme {
+    id: string;
+    programmeId: string;
+    name: string;
+    destination: string;
+    type: string;
+    budget: number;
+    startDate: string;
+    endDate: string;
+    voyageurs: number;
+    programme: any;
+    isDone: boolean;
+    isFavorite: boolean;
+    createdAt: string;
+    duration: number;
+}
+
+interface TourCardListProps {
+    showFavorites?: boolean;
+    onFavoriteChange?: () => void;
+}
+
+const TourCardList = ({ showFavorites = false, onFavoriteChange }: TourCardListProps) => {
+    const { data: session, status } = useSession();
     const [sortBy, setSortBy] = useState('recent')
     const [currentPage, setCurrentPage] = useState(1)
+    const [favorites, setFavorites] = useState<FavoriteProgramme[]>([]);
+    const [loading, setLoading] = useState(showFavorites);
+    const [error, setError] = useState<string | null>(null);
     const itemsPerPage = 6
 
+    useEffect(() => {
+        if (showFavorites && status === 'authenticated') {
+            fetchFavorites();
+        } else if (showFavorites && status === 'unauthenticated') {
+            setLoading(false);
+        }
+    }, [status, showFavorites]);
+
+    const fetchFavorites = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('/api/favorites');
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Erreur lors de la récupération');
+            }
+
+            setFavorites(data.favorites || []);
+            // Notifier le parent du changement
+            if (onFavoriteChange) {
+                onFavoriteChange();
+            }
+        } catch (err: any) {
+            console.error('❌ Erreur récupération favoris:', err);
+            setError(err.message || 'Erreur lors du chargement des favoris');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    };
+
+    const formatDateRange = (startDate: string, endDate: string) => {
+        return `${formatDate(startDate)} → ${formatDate(endDate)}`;
+    };
+
+    // Convertir les favoris en format TourHistoryType
+    const favoritesAsTours = favorites.map((favorite, index) => ({
+        id: parseInt(favorite.id.slice(-6), 16), // ID numérique pour l'affichage
+        originalId: favorite.id, // ID UUID original pour la navigation
+        programmeId: favorite.programmeId, // ID du programme original
+        name: favorite.name,
+        bookingDate: formatDate(favorite.createdAt),
+        travelDate: formatDateRange(favorite.startDate, favorite.endDate),
+        status: favorite.isDone ? 'completed' : 'upcoming' as 'completed' | 'upcoming' | 'cancelled',
+        type: favorite.type,
+        days: favorite.duration,
+        nights: favorite.duration - 1,
+        benefits: {
+            flight: 1,
+            hotel: 1,
+            activities: 1
+        },
+        price: favorite.budget,
+        image: "/assets/images/bg/08.jpg",
+        bookingReference: `FAV-${favorite.id.slice(-8).toUpperCase()}`
+    }));
+
+    // Utiliser les favoris ou l'historique selon le mode
+    const allTours = showFavorites ? favoritesAsTours : tourHistory;
+
     // Sort tours
-    const sortedTours = [...tourHistory].sort((a, b) => {
+    const sortedTours = [...allTours].sort((a, b) => {
         switch (sortBy) {
             case 'recent':
                 return new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime()
@@ -32,6 +127,61 @@ const TourCardList = () => {
     const endIndex = startIndex + itemsPerPage
     const currentTours = sortedTours.slice(startIndex, endIndex)
 
+    // États de chargement et erreur pour les favoris
+    if (showFavorites && loading) {
+        return (
+            <div className="flex justify-center items-center py-20">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600"></div>
+                    <p className="text-lg font-semibold text-gray-600 dark:text-gray-300">
+                        Chargement de vos favoris...
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    if (showFavorites && error) {
+        return (
+            <div className="text-center py-20">
+                <div className="text-6xl mb-4">⚠️</div>
+                <p className="text-xl text-red-600 dark:text-red-400 mb-4">
+                    {error}
+                </p>
+                <button
+                    onClick={fetchFavorites}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+                >
+                    Réessayer
+                </button>
+            </div>
+        );
+    }
+
+    // État vide pour les favoris
+    if (showFavorites && allTours.length === 0) {
+        return (
+            <div className="text-center py-20">
+                <div className="text-6xl mb-4">❤️</div>
+                <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+                    Aucun favori
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-8">
+                    Vous n'avez pas encore ajouté de programmes aux favoris.
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">
+                    Cliquez sur le cœur ❤️ dans vos programmes pour les ajouter aux favoris !
+                </p>
+                <Link
+                    href="/List-trip"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+                >
+                    Voir mes programmes
+                </Link>
+            </div>
+        );
+    }
+
     return (
         <section className="pt-0 pb-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -39,7 +189,11 @@ const TourCardList = () => {
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-center justify-between mb-6">
                     <div className="xl:col-span-8">
                         <h5 className="text-lg font-semibold mb-0 text-gray-900 dark:text-white">
-                            Showing {startIndex + 1}-{Math.min(endIndex, sortedTours.length)} of {sortedTours.length} result
+                            {showFavorites ? (
+                                <>Affichage de {startIndex + 1}-{Math.min(endIndex, sortedTours.length)} sur {sortedTours.length} favori{sortedTours.length > 1 ? 's' : ''}</>
+                            ) : (
+                                <>Showing {startIndex + 1}-{Math.min(endIndex, sortedTours.length)} of {sortedTours.length} result</>
+                            )}
                         </h5>
                     </div>
                     <div className="xl:col-span-2">

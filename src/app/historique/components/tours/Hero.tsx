@@ -1,8 +1,9 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BsCalendar, BsGeoAlt, BsSliders, BsSearch } from 'react-icons/bs'
 import Image from 'next/image'
 import TourCardList from './TourCardList'
+import { useSession } from 'next-auth/react'
 
 interface FilterState {
     destination: string
@@ -15,13 +16,36 @@ interface FilterState {
     travelTo: string
 }
 
-const Hero = ({ filters, setFilters, totalTours, favoriteTours }: {
+const Hero = ({ filters, setFilters, totalTours, favoriteTours, showFavorites = false }: {
     filters: FilterState,
     setFilters: (filters: FilterState) => void,
     totalTours: number,
-    favoriteTours: number
+    favoriteTours: number,
+    showFavorites?: boolean
 }) => {
     const [showFilters, setShowFilters] = useState(false)
+    const [actualFavoriteCount, setActualFavoriteCount] = useState(0)
+    const { data: session, status } = useSession()
+
+    // Récupérer le nombre réel de favoris
+    useEffect(() => {
+        if (status === 'authenticated') {
+            fetchFavoriteCount()
+        }
+    }, [status])
+
+    const fetchFavoriteCount = async () => {
+        try {
+            const response = await fetch('/api/favorites')
+            const data = await response.json()
+
+            if (response.ok && data.favorites) {
+                setActualFavoriteCount(data.favorites.length)
+            }
+        } catch (error) {
+            console.error('❌ Erreur récupération nombre de favoris:', error)
+        }
+    }
 
     return (
         <section className="relative pt-0">
@@ -39,17 +63,29 @@ const Hero = ({ filters, setFilters, totalTours, favoriteTours }: {
 
                     <div className="relative z-10 flex flex-col items-center justify-center h-full py-12">
                         <h1 className="text-4xl md:text-5xl font-bold text-white text-center mb-4 drop-shadow-lg">
-                            Tour History
+                            {showFavorites ? 'Mes Favoris ❤️' : 'Tour History'}
                         </h1>
                         <div className="flex items-center gap-6 text-white text-lg">
-                            <div className="flex items-center gap-2">
-                                <span className="font-semibold">{totalTours}</span>
-                                <span className="opacity-90">Total Tours</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="font-semibold">{favoriteTours}</span>
-                                <span className="opacity-90">Favoris</span>
-                            </div>
+                            {showFavorites ? (
+                                <>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-semibold">{actualFavoriteCount}</span>
+                                        <span className="opacity-90">Programmes Favoris</span>
+                                    </div>
+
+                                </>
+                            ) : (
+                                <>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-semibold">{totalTours}</span>
+                                        <span className="opacity-90">Total Tours</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-semibold">{actualFavoriteCount}</span>
+                                        <span className="opacity-90">Favoris</span>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -216,7 +252,7 @@ const Hero = ({ filters, setFilters, totalTours, favoriteTours }: {
 
             {/* Tours List Section */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <TourCardList />
+                <TourCardList showFavorites={showFavorites} onFavoriteChange={fetchFavoriteCount} />
             </div>
         </section>
     )

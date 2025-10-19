@@ -59,9 +59,9 @@ const Hero = ({ location: initialLocation, checkIn, checkOut, adults, rooms }: {
   };
 
   return (
-    <section className="pt-0">
+    <section className="pt-0 bg-gray-50 dark:bg-[#222529]">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="bg-gray-900 shadow rounded-3 position-relative p-4 pe-md-5 pb-5 pb-md-4 mb-4 text-white">
+        <div className="bg-white dark:bg-[#2a2c31] shadow rounded-3 position-relative p-4 pe-md-5 pb-5 pb-md-4 mb-4 text-gray-900 dark:text-white">
           <Row className="g-4 align-items-center">
             <Col lg={4}>
               <div className="form-control-border form-control-transparent form-fs-md flex-centered gap-2">
@@ -92,7 +92,7 @@ const Hero = ({ location: initialLocation, checkIn, checkOut, adults, rooms }: {
                       mode: "range",
                       dateFormat: "Y-m-d",
                     }}
-                    className="form-control flatpickr bg-gray-800 text-white border-gray-600"
+                    className="form-control flatpickr bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
                   />
                 </div>
               </div>
@@ -107,11 +107,11 @@ const Hero = ({ location: initialLocation, checkIn, checkOut, adults, rooms }: {
                   <Dropdown className="guest-selector me-2">
                     <DropdownToggle
                       as="input"
-                      className="form-guest-selector form-control selection-result bg-gray-800 text-white border-gray-600"
+                      className="form-guest-selector form-control selection-result bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
                       value={getGuestsValue()}
                       readOnly
                     />
-                    <DropdownMenu className="guest-selector-dropdown bg-gray-800 text-white">
+                    <DropdownMenu className="guest-selector-dropdown bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
                       <li className="d-flex justify-content-between">
                         <div>
                           <h6 className="mb-0">Adults</h6>
@@ -120,7 +120,7 @@ const Hero = ({ location: initialLocation, checkIn, checkOut, adults, rooms }: {
                         <div className="hstack gap-1 align-items-center">
                           <Button
                             variant="link"
-                            className="adult-remove p-0 mb-0 text-white"
+                            className="adult-remove p-0 mb-0 text-gray-900 dark:text-white"
                             onClick={() => updateGuests("adults", false)}
                           >
                             <BsDashCircle className="fs-5 fa-fw" />
@@ -128,14 +128,14 @@ const Hero = ({ location: initialLocation, checkIn, checkOut, adults, rooms }: {
                           <h6 className="guest-selector-count mb-0 adults">{formValue.guests.adults ?? 0}</h6>
                           <Button
                             variant="link"
-                            className="adult-add p-0 mb-0 text-white"
+                            className="adult-add p-0 mb-0 text-gray-900 dark:text-white"
                             onClick={() => updateGuests("adults")}
                           >
                             <BsPlusCircle className="fs-5 fa-fw" />
                           </Button>
                         </div>
                       </li>
-                      <DropdownDivider className="bg-gray-600" />
+                      <DropdownDivider className="bg-gray-300 dark:bg-gray-600" />
                       <li className="d-flex justify-content-between">
                         <div>
                           <h6 className="mb-0">Children</h6>
@@ -144,7 +144,7 @@ const Hero = ({ location: initialLocation, checkIn, checkOut, adults, rooms }: {
                         <div className="hstack gap-1 align-items-center">
                           <Button
                             variant="link"
-                            className="child-remove p-0 mb-0 text-white"
+                            className="child-remove p-0 mb-0 text-gray-900 dark:text-white"
                             onClick={() => updateGuests("children", false)}
                           >
                             <BsDashCircle className="fs-5 fa-fw" />
@@ -152,14 +152,14 @@ const Hero = ({ location: initialLocation, checkIn, checkOut, adults, rooms }: {
                           <h6 className="guest-selector-count mb-0 child">{formValue.guests.children ?? 0}</h6>
                           <Button
                             variant="link"
-                            className="child-add p-0 mb-0 text-white"
+                            className="child-add p-0 mb-0 text-gray-900 dark:text-white"
                             onClick={() => updateGuests("children")}
                           >
                             <BsPlusCircle className="fs-5 fa-fw" />
                           </Button>
                         </div>
                       </li>
-                      <DropdownDivider className="bg-gray-600" />
+                      <DropdownDivider className="bg-gray-300 dark:bg-gray-600" />
                       <li className="d-flex justify-content-between">
                         <div>
                           <h6 className="mb-0">Rooms</h6>
@@ -168,7 +168,7 @@ const Hero = ({ location: initialLocation, checkIn, checkOut, adults, rooms }: {
                         <div className="hstack gap-1 align-items-center">
                           <Button
                             variant="link"
-                            className="room-remove p-0 mb-0 text-white"
+                            className="room-remove p-0 mb-0 text-gray-900 dark:text-white"
                             onClick={() => updateGuests("rooms", false)}
                           >
                             <BsDashCircle className="fs-5 fa-fw" />
@@ -176,7 +176,7 @@ const Hero = ({ location: initialLocation, checkIn, checkOut, adults, rooms }: {
                           <h6 className="guest-selector-count mb-0 rooms">{formValue.guests.rooms ?? 0}</h6>
                           <Button
                             variant="link"
-                            className="room-add p-0 mb-0 text-white"
+                            className="room-add p-0 mb-0 text-gray-900 dark:text-white"
                             onClick={() => updateGuests("rooms")}
                           >
                             <BsPlusCircle className="fs-5 fa-fw" />

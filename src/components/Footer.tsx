@@ -1,5 +1,5 @@
 "use client";
-import { footerLinks,topLinks } from "@/../public/assets/data/footer-items";
+import { footerLinks, topLinks } from "@/../public/assets/data/footer-items";
 
 import { currentYear, developedByLink } from "@/states";
 import Image from "next/image";
@@ -28,7 +28,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-gray-900 pt-12 pb-6">
+    <footer className="bg-[#0b0a12] dark:bg-[#0b0a12] light:bg-[#f5f5f6] pt-12 pb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section principale */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
@@ -43,20 +43,20 @@ const Footer = () => {
                 className="h-10"
               />
             </Link>
-            <p className="text-gray-400 mb-4 text-sm">
+            <p className="text-gray-400 dark:text-gray-400 light:text-gray-600 mb-4 text-sm">
               Departure defective arranging rapturous did believe him all had supported.
             </p>
             <div className="space-y-2">
               <Link
                 href="tel:+1234568963"
-                className="flex items-center text-gray-400 hover:text-indigo-400 transition text-sm"
+                className="flex items-center text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-indigo-400 transition text-sm"
               >
                 <BsTelephone className="mr-2" />
                 +1234 568 963
               </Link>
               <Link
                 href="mailto:example@gmail.com"
-                className="flex items-center text-gray-400 hover:text-indigo-400 transition text-sm"
+                className="flex items-center text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-indigo-400 transition text-sm"
               >
                 <BsEnvelope className="mr-2" />
                 example@gmail.com
@@ -69,7 +69,7 @@ const Footer = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               {footerLinks.map((section, idx) => (
                 <div key={idx}>
-                  <h5 className="text-white font-semibold mb-4 text-sm">
+                  <h5 className="text-white dark:text-white light:text-gray-800 font-semibold mb-4 text-sm">
                     {section.title}
                   </h5>
                   <ul className="space-y-2">
@@ -79,7 +79,7 @@ const Footer = () => {
                         <li key={i}>
                           <Link
                             href={item.link}
-                            className="flex items-center text-gray-400 hover:text-indigo-400 transition text-sm"
+                            className="flex items-center text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-indigo-400 transition text-sm"
                           >
                             {Icon && <Icon className="mr-2" />}
                             {item.name}
@@ -96,13 +96,13 @@ const Footer = () => {
 
         {/* Top Links */}
         <div className="mb-8">
-          <h5 className="text-white font-semibold mb-3 text-sm">Top Links</h5>
+          <h5 className="text-white dark:text-white light:text-gray-800 font-semibold mb-3 text-sm">Top Links</h5>
           <ul className="flex flex-wrap gap-x-4 gap-y-2">
             {topLinks.map((item, idx) => (
               <li key={idx}>
                 <Link
                   href={item.link ?? "#"}
-                  className="text-gray-400 hover:text-indigo-400 transition text-sm"
+                  className="text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-indigo-400 transition text-sm"
                 >
                   {item.name}
                 </Link>
@@ -115,7 +115,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
           {/* Moyens de paiement */}
           <div>
-            <h5 className="text-white font-semibold mb-3 text-sm">
+            <h5 className="text-white dark:text-white light:text-gray-800 font-semibold mb-3 text-sm">
               Payment &amp; Security
             </h5>
             <div className="flex gap-2 mt-3">
@@ -135,7 +135,7 @@ const Footer = () => {
 
           {/* Réseaux sociaux */}
           <div className="sm:text-right">
-            <h5 className="text-white font-semibold mb-3 text-sm">Follow us on</h5>
+            <h5 className="text-white dark:text-white light:text-gray-800 font-semibold mb-3 text-sm">Follow us on</h5>
             <div className="flex gap-2 mt-3 sm:justify-end">
               {socialLinks.map((social, idx) => {
                 const Icon = social.icon;
@@ -154,19 +154,19 @@ const Footer = () => {
         </div>
 
         {/* Séparateur */}
-        <hr className="border-gray-800 mb-6" />
+        <hr className="border-gray-800 dark:border-gray-800 light:border-gray-300 mb-6" />
 
         {/* Copyright */}
         <div className="flex flex-col lg:flex-row justify-between items-center gap-4 text-center lg:text-left">
-          <p className="text-gray-400 text-sm">
-            Copyrights ©{currentYear} Booking. Build by{" "}
-               
+          <p className="text-gray-400 dark:text-gray-400 light:text-gray-600 text-sm">
+            Copyrights ©{currentYear} TripMind. Build by{" "}
+
             <a
               href={developedByLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-indigo-400 transition">
-         
+              className="text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-indigo-400 transition">
+
               StackBros
             </a>
             .
@@ -175,7 +175,7 @@ const Footer = () => {
             <li>
               <Link
                 href="/help/privacy-policy"
-                className="text-gray-400 hover:text-indigo-400 transition text-sm"
+                className="text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-indigo-400 transition text-sm"
               >
                 Privacy policy
               </Link>
@@ -183,7 +183,7 @@ const Footer = () => {
             <li>
               <Link
                 href="/help/service"
-                className="text-gray-400 hover:text-indigo-400 transition text-sm"
+                className="text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-indigo-400 transition text-sm"
               >
                 Terms and conditions
               </Link>
@@ -191,7 +191,7 @@ const Footer = () => {
             <li>
               <Link
                 href="/help/detail"
-                className="text-gray-400 hover:text-indigo-400 transition text-sm"
+                className="text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-indigo-400 transition text-sm"
               >
                 Refund policy
               </Link>

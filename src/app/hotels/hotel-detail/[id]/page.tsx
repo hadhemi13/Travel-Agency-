@@ -363,20 +363,30 @@ export default function HotelDetail() {
 
   if (loading)
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white text-xl">
-        Loading hotel details...
+      <div className="min-h-screen bg-gray-50 dark:bg-[#222529] flex items-center justify-center text-gray-900 dark:text-white text-xl">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#8e85e6]"></div>
+          <p className="text-lg font-semibold">Loading hotel details...</p>
+        </div>
       </div>
     );
   if (error)
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center text-red-500 text-xl">
-        Error: {error}
+      <div className="min-h-screen bg-gray-50 dark:bg-[#222529] flex items-center justify-center text-red-500 text-xl">
+        <div className="text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <p className="text-xl font-semibold mb-4">Error loading hotel details</p>
+          <p className="text-lg">{error}</p>
+        </div>
       </div>
     );
   if (!hotel)
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white text-xl">
-        No hotel found.
+      <div className="min-h-screen bg-gray-50 dark:bg-[#222529] flex items-center justify-center text-gray-900 dark:text-white text-xl">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🏨</div>
+          <p className="text-xl font-semibold">No hotel found</p>
+        </div>
       </div>
     );
 
@@ -402,35 +412,35 @@ export default function HotelDetail() {
   return (
     <>
       <TopNavBar />
-      <main className="mt-12 py-6 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
+      <main className="mt-12 py-6 bg-gray-50 dark:bg-[#222529] text-gray-900 dark:text-gray-100 min-h-screen">
         <div className="max-w-7xl mx-auto px-4">
           {/* Header */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+          <div className="bg-[#191b1d] rounded-xl shadow-md p-6 mb-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
               <div>
-                <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+                <h1 className="text-3xl font-bold text-white">
                   {hotel.hotel_name} {hotel.hotel_name_trans && `(${hotel.hotel_name_trans})`}
                 </h1>
-                <p className="text-gray-600 dark:text-gray-300 mt-2 flex items-center">
-                  <BsGeoAlt className="mr-2 text-blue-600 dark:text-blue-400" /> {hotel.address}, {hotel.city} {hotel.city_trans && `(${hotel.city_trans})`}
+                <p className="text-gray-300 mt-2 flex items-center">
+                  <BsGeoAlt className="mr-2 text-[#8e85e6]" /> {hotel.address}, {hotel.city} {hotel.city_trans && `(${hotel.city_trans})`}
                 </p>
                 <div className="flex items-center mt-2">
                   <span className="inline-flex items-center px-3 py-1 bg-yellow-500 dark:bg-yellow-600 text-white text-sm font-semibold rounded-full">
                     <BsStarFill className="mr-1" /> {hotel.review_score || hotel.rawData?.reviewScore || "N/A"}/10 {hotel.review_score_word && `(${hotel.review_score_word})`}
                   </span>
-                  <span className="ml-2 text-gray-600 dark:text-gray-400">
+                  <span className="ml-2 text-gray-300">
                     ({hotel.review_nr || hotel.rawData?.reviewCount || 0} reviews)
                   </span>
                 </div>
               </div>
-              <div className="mt-4 md:mt-0 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+              <div className="mt-4 md:mt-0 bg-gray-700 p-4 rounded-lg">
+                <div className="flex items-center text-sm text-gray-300">
                   <BsCalendar className="mr-2" /> {checkIn} - {checkOut}
                 </div>
-                <div className="flex items-center text-sm text-gray-700 dark:text-gray-300 mt-1">
+                <div className="flex items-center text-sm text-gray-300 mt-1">
                   <BsPeople className="mr-2" /> {adults} adults, {rooms} rooms
                 </div>
-                <div className="flex items-center text-sm text-gray-700 dark:text-gray-300 mt-1">
+                <div className="flex items-center text-sm text-gray-300 mt-1">
                   <BsWifi className="mr-2" /> WiFi Rating: {hotel.wifi_review_score?.rating || "N/A"}
                 </div>
               </div>
@@ -438,8 +448,8 @@ export default function HotelDetail() {
           </div>
 
           {/* Photos */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
-            <h2 className="text-2xl font-bold mb-4 flex items-center text-gray-800 dark:text-white">
+          <div className="bg-[#191b1d] rounded-xl shadow-md p-6 mb-8">
+            <h2 className="text-2xl font-bold mb-4 flex items-center text-white">
               <BsCamera className="mr-2" /> Hotel Photos
             </h2>
             {allPhotos.length > 0 ? (
@@ -455,38 +465,38 @@ export default function HotelDetail() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400">No photos available.</p>
+              <p className="text-gray-400">No photos available.</p>
             )}
           </div>
 
           {/* About */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
-            <h2 className="text-2xl font-bold mb-4 flex items-center text-gray-800 dark:text-white">
+          <div className="bg-[#191b1d] rounded-xl shadow-md p-6 mb-8">
+            <h2 className="text-2xl font-bold mb-4 flex items-center text-white">
               <BsInfoCircle className="mr-2" /> About This Property
             </h2>
-            <p className="text-gray-700 dark:text-gray-300">
-              {hotel.accommodation_type_name || "Hotel/Apartment"} in {hotel.city_trans || hotel.city}. 
+            <p className="text-gray-300">
+              {hotel.accommodation_type_name || "Hôtel/Apartement"} à {hotel.city_trans || hotel.city}.
               {hotel.hotel_include_breakfast ? " Breakfast included." : " Breakfast not included."}
             </p>
-            <p className="text-gray-700 dark:text-gray-300 mt-2">
+            <p className="text-gray-300 mt-2">
               Available rooms: {hotel.available_rooms || hotel.block?.length || "N/A"} | Sold out: {hotel.soldout ? "Yes" : "No"}
             </p>
-            <p className="text-gray-700 dark:text-gray-300 mt-2">
+            <p className="text-gray-300 mt-2">
               Quality Class: {hotel.booking_home?.quality_class || hotel.rawData?.qualityClass || "N/A"} | Property Class: {hotel.rawData?.propertyClass || "N/A"} | Accurate Class: {hotel.rawData?.accuratePropertyClass || "N/A"}
             </p>
             <a
               href={hotel.url || `https://www.booking.com/hotel/${hotel.rawData?.countryCode}/${hotel.hotel_name.toLowerCase().replace(/\s/g, "-")}.html`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 dark:text-blue-400 hover:underline mt-2 inline-block"
+              className="text-[#8e85e6] hover:underline mt-2 inline-block"
             >
               View on Booking.com
             </a>
           </div>
 
           {/* Highlights / Facilities */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
-            <h2 className="text-2xl font-bold mb-4 flex items-center text-gray-800 dark:text-white">
+          <div className="bg-[#191b1d] rounded-xl shadow-md p-6 mb-8">
+            <h2 className="text-2xl font-bold mb-4 flex items-center text-white">
               <BsCheckCircle className="mr-2" /> Highlights & Facilities
             </h2>
             <div className="flex flex-wrap gap-2 mb-4">
@@ -498,19 +508,19 @@ export default function HotelDetail() {
                 <span key={idx} className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm font-medium flex items-center">
                   <BsCheckCircle className="mr-1" /> {b.translated_name}
                 </span>
-              )) || <p className="text-gray-500 dark:text-gray-400">No highlights available.</p>}
+              )) || <p className="text-gray-400">No highlights available.</p>}
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {hotel.facilities_block?.facilities?.map((f, idx) => (
-                <div key={idx} className="flex items-center text-gray-700 dark:text-gray-300">
-                  <BsCheckCircle className="mr-2 text-green-600 dark:text-green-400" /> {f.name}
+                <div key={idx} className="flex items-center text-gray-300">
+                  <BsCheckCircle className="mr-2 text-green-400" /> {f.name}
                 </div>
-              )) || <p className="text-gray-500 dark:text-gray-400 col-span-full">No facilities listed.</p>}
+              )) || <p className="text-gray-400 col-span-full">No facilities listed.</p>}
             </div>
             {hotel.family_facilities?.length ? (
               <div className="mt-4">
-                <h3 className="text-xl font-semibold mb-2 text-gray-800 dark:text-white">Family Facilities</h3>
-                <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300">
+                <h3 className="text-xl font-semibold mb-2 text-white">Family Facilities</h3>
+                <ul className="list-disc pl-6 text-gray-300">
                   {hotel.family_facilities.map((fac, idx) => <li key={idx}>{fac}</li>)}
                 </ul>
               </div>
@@ -518,8 +528,8 @@ export default function HotelDetail() {
           </div>
 
           {/* Languages Spoken */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
-            <h2 className="text-2xl font-bold mb-4 flex items-center text-gray-800 dark:text-white">
+          <div className="bg-[#191b1d] rounded-xl shadow-md p-6 mb-8">
+            <h2 className="text-2xl font-bold mb-4 flex items-center text-white">
               <BsGlobe className="mr-2" /> Languages Spoken
             </h2>
             <div className="flex flex-wrap gap-2">
@@ -531,19 +541,19 @@ export default function HotelDetail() {
                 <span key={idx} className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-sm font-medium">
                   {lang.toUpperCase()}
                 </span>
-              )) || <p className="text-gray-500 dark:text-gray-400">No language information available.</p>}
+              )) || <p className="text-gray-400">No language information available.</p>}
             </div>
           </div>
 
           {/* House Rules */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
-            <h2 className="text-2xl font-bold mb-4 flex items-center text-gray-800 dark:text-white">
+          <div className="bg-[#191b1d] rounded-xl shadow-md p-6 mb-8">
+            <h2 className="text-2xl font-bold mb-4 flex items-center text-white">
               <BsHouseDoor className="mr-2" /> House Rules & Important Information
             </h2>
-            <ul className="space-y-4 text-gray-700 dark:text-gray-300">
+            <ul className="space-y-4 text-gray-300">
               {hotel.booking_home?.house_rules?.map((rule, idx) => (
                 <li key={idx} className="flex items-start">
-                  <BsInfoCircle className="mr-2 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-1" />
+                  <BsInfoCircle className="mr-2 text-[#8e85e6] flex-shrink-0 mt-1" />
                   <div>
                     <strong>{rule.title}:</strong> {rule.description}
                   </div>
@@ -551,16 +561,16 @@ export default function HotelDetail() {
               ))}
               {hotel.hotel_important_information_with_codes?.map((info, idx) => (
                 <li key={idx} className="flex items-start">
-                  <BsInfoCircle className="mr-2 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-1" />
+                  <BsInfoCircle className="mr-2 text-[#8e85e6] flex-shrink-0 mt-1" />
                   <div dangerouslySetInnerHTML={{ __html: info.phrase }} />
                 </li>
-              )) || <p className="text-gray-500 dark:text-gray-400">No house rules available.</p>}
+              )) || <p className="text-gray-400">No house rules available.</p>}
             </ul>
           </div>
 
           {/* Available Rooms */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
-            <h2 className="text-2xl font-bold mb-4 flex items-center text-gray-800 dark:text-white">
+          <div className="bg-[#191b1d] rounded-xl shadow-md p-6 mb-8">
+            <h2 className="text-2xl font-bold mb-4 flex items-center text-white">
               <BsDoorOpen className="mr-2" /> Available Rooms
             </h2>
             {roomBlocks.length > 0 ? (
@@ -570,9 +580,9 @@ export default function HotelDetail() {
                   return (
                     <div
                       key={blk.block_id || idx}
-                      className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow dark:hover:shadow-gray-700"
+                      className="border border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow dark:hover:shadow-gray-700"
                     >
-                      <h3 className="font-semibold text-lg mb-2 text-gray-800 dark:text-white">{blk.name || blk.room_name || "Room"}</h3>
+                      <h3 className="font-semibold text-lg mb-2 text-white">{blk.name || blk.room_name || "Room"}</h3>
                       {room?.photos?.[0]?.url_original && (
                         <img
                           src={room.photos[0].url_max1280 || room.photos[0].url_original}
@@ -581,41 +591,41 @@ export default function HotelDetail() {
                           loading="lazy"
                         />
                       )}
-                      <p className="text-gray-600 dark:text-gray-400 mb-2">{room?.description || "No description available."}</p>
-                      <div className="text-gray-700 dark:text-gray-300 mb-2">
+                      <p className="text-gray-400 mb-2">{room?.description || "No description available."}</p>
+                      <div className="text-gray-300 mb-2">
                         <strong>Max Occupancy:</strong> {blk.max_occupancy}
                       </div>
-                      <div className="text-gray-700 dark:text-gray-300 mb-2">
+                      <div className="text-gray-300 mb-2">
                         <strong>Area:</strong> {blk.room_surface_in_m2} m² ({blk.room_surface_in_feet2} ft²)
                       </div>
-                      <div className="text-gray-700 dark:text-gray-300 mb-2">
+                      <div className="text-gray-300 mb-2">
                         <strong>Meal Plan:</strong> {blk.mealplan}
                       </div>
-                      <div className="text-gray-700 dark:text-gray-300 mb-2">
+                      <div className="text-gray-300 mb-2">
                         <strong>Breakfast Included:</strong> {blk.breakfast_included ? "Yes" : "No"}
                       </div>
-                      <div className="text-gray-700 dark:text-gray-300 mb-2">
+                      <div className="text-gray-300 mb-2">
                         <strong>Refundable:</strong> {blk.refundable ? "Yes" : "No"}
                       </div>
-                      <div className="text-gray-700 dark:text-gray-300 mb-2">
+                      <div className="text-gray-300 mb-2">
                         <strong>Highlights:</strong>
                         <ul className="list-disc pl-4">
                           {room?.highlights?.map((h, hIdx) => (
-                            <li key={hIdx} className="text-gray-700 dark:text-gray-300">{h.translated_name}</li>
+                            <li key={hIdx} className="text-gray-300">{h.translated_name}</li>
                           ))}
                         </ul>
                       </div>
-                      <div className="text-gray-700 dark:text-gray-300 mb-2">
+                      <div className="text-gray-300 mb-2">
                         <strong>Bed Configurations:</strong>
                         <ul className="list-disc pl-4">
                           {room?.bed_configurations?.map((config, cIdx) => (
-                            <li key={cIdx} className="text-gray-700 dark:text-gray-300">
+                            <li key={cIdx} className="text-gray-300">
                               {config.bed_types.map((bed) => bed.name_with_count).join(", ")}
                             </li>
                           ))}
                         </ul>
                       </div>
-                      <button className="mt-4 w-full bg-blue-600 dark:bg-blue-700 text-white py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition">
+                      <button className="mt-4 w-full bg-[#8e85e6] text-white py-2 rounded hover:bg-[#7a6deb] transition">
                         Select Room
                       </button>
                     </div>
@@ -623,21 +633,21 @@ export default function HotelDetail() {
                 })}
               </div>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400">No room data available.</p>
+              <p className="text-gray-400">No room data available.</p>
             )}
           </div>
 
           {/* Price Breakdown */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Price Breakdown</h2>
-            <div className="space-y-2 text-gray-700 dark:text-gray-300">
+          <div className="bg-[#191b1d] rounded-xl shadow-md p-6 mb-8">
+            <h2 className="text-2xl font-bold mb-4 text-white">Price Breakdown</h2>
+            <div className="space-y-2 text-gray-300">
               <div className="flex justify-between">
                 <span>Net Amount:</span>
                 <span className="font-semibold">{netAmount.toFixed(2)} {currency}</span>
               </div>
               <div className="flex justify-between">
                 <span>Discounted Amount:</span>
-                <span className="font-semibold text-green-600 dark:text-green-400">-{discountedAmount.toFixed(2)} {currency}</span>
+                <span className="font-semibold text-green-400">-{discountedAmount.toFixed(2)} {currency}</span>
               </div>
               <div className="flex justify-between">
                 <span>Taxes & Charges:</span>
@@ -645,20 +655,20 @@ export default function HotelDetail() {
               </div>
               <div className="flex justify-between">
                 <span>Strikethrough Amount (Original):</span>
-                <span className="font-semibold line-through text-red-600 dark:text-red-400">{strikethroughAmount.toFixed(2)} {currency}</span>
+                <span className="font-semibold line-through text-red-400">{strikethroughAmount.toFixed(2)} {currency}</span>
               </div>
-              <div className="flex justify-between text-xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="flex justify-between text-xl font-bold text-[#8e85e6]">
                 <span>Total Gross Amount:</span>
                 <span>{totalPrice.toFixed(2)} {currency}</span>
               </div>
             </div>
             {hotel.composite_price_breakdown?.benefits?.length ? (
               <div className="mt-4">
-                <h3 className="text-xl font-semibold mb-2 text-gray-800 dark:text-white">Benefits & Discounts</h3>
+                <h3 className="text-xl font-semibold mb-2 text-white">Benefits & Discounts</h3>
                 <ul className="space-y-2">
                   {hotel.composite_price_breakdown.benefits.map((benefit, idx) => (
-                    <li key={idx} className="flex items-start text-gray-700 dark:text-gray-300">
-                      <BsCheckCircle className="mr-2 text-green-600 dark:text-green-400 mt-1" />
+                    <li key={idx} className="flex items-start text-gray-300">
+                      <BsCheckCircle className="mr-2 text-green-400 mt-1" />
                       <div>
                         <strong>{benefit.name} ({benefit.identifier}):</strong> {benefit.details}
                       </div>
@@ -669,10 +679,10 @@ export default function HotelDetail() {
             ) : null}
             {hotel.composite_price_breakdown?.items?.length ? (
               <div className="mt-4">
-                <h3 className="text-xl font-semibold mb-2 text-gray-800 dark:text-white">Detailed Charges</h3>
+                <h3 className="text-xl font-semibold mb-2 text-white">Detailed Charges</h3>
                 <ul className="space-y-2">
                   {hotel.composite_price_breakdown.items.map((item, idx) => (
-                    <li key={idx} className="flex justify-between text-gray-700 dark:text-gray-300">
+                    <li key={idx} className="flex justify-between text-gray-300">
                       <span>{item.name} ({item.kind}):</span>
                       <span>{item.item_amount.value.toFixed(2)} {item.item_amount.currency}</span>
                     </li>

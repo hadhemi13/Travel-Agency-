@@ -17,6 +17,7 @@ const ToursClient = () => {
             setFilters={() => { }}
             totalTours={0}
             favoriteTours={0}
+            showFavorites={true}
         />
     )
 }

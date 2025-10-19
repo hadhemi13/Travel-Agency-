@@ -183,22 +183,29 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white text-xl">
-        Loading hotels...
+      <div className="min-h-screen bg-gray-50 dark:bg-[#222529] flex items-center justify-center text-gray-900 dark:text-white text-xl">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#8e85e6]"></div>
+          <p className="text-lg font-semibold">Loading hotels...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center text-red-500 text-xl">
-        Error: {error}
+      <div className="min-h-screen bg-gray-50 dark:bg-[#222529] flex items-center justify-center text-red-500 text-xl">
+        <div className="text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <p className="text-xl font-semibold mb-4">Erreur lors du chargement</p>
+          <p className="text-lg">{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <section className="bg-gray-900 text-white min-h-screen">
+    <section className="bg-gray-50 dark:bg-[#222529] text-gray-900 dark:text-white min-h-screen">
       {/* Message de notification */}
       {saveMessage && (
         <div className={`fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${saveMessage.type === 'success'
@@ -219,23 +226,23 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
 
       <div className="max-w-7xl mx-auto px-4">
         {/* ====== FILTER BAR ====== */}
-        <div className="sticky top-0 z-10 shadow-md bg-gray-900">
+        <div className="sticky top-0 z-10 shadow-md bg-gray-50 dark:bg-[#222529]">
           <div className="flex justify-between items-center py-4">
             <button
               onClick={toggle}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+              className="bg-[#8e85e6] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#7a6deb] transition-colors"
             >
               <BsSliders /> Show Filters
             </button>
 
             <ul className="flex space-x-2">
               <li>
-                <Link href="/hotels/list" className="text-gray-300 hover:text-blue-400 p-2">
+                <Link href="/hotels/list" className="text-gray-600 dark:text-gray-300 hover:text-[#8e85e6] dark:hover:text-[#7a6deb] p-2">
                   <BsListUl size={16} />
                 </Link>
               </li>
               <li>
-                <Link href="/hotels/grid" className="text-blue-400 p-2 bg-gray-700 rounded hover:bg-gray-600">
+                <Link href="/hotels/grid" className="text-[#8e85e6] p-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600">
                   <BsGridFill size={16} />
                 </Link>
               </li>
@@ -243,7 +250,7 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
           </div>
 
           <div id="collapseFilter" className={isOpen ? "block" : "hidden"}>
-            <div className="bg-gray-800 p-4 rounded-lg">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg">
               <form onSubmit={handleSubmit(onFilterSubmit)} className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Controller
@@ -252,40 +259,40 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
                     render={({ field }) => (
                       <input
                         {...field}
-                        className="w-full p-2 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded focus:ring-2 focus:ring-[#8e85e6]"
                         placeholder="Enter Hotel Name"
                       />
                     )}
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-300 mb-1">Price Range</label>
+                  <label className="block text-gray-700 dark:text-gray-300 mb-1">Price Range</label>
                   <div className="flex justify-between">
                     <input
                       type="text"
                       value={priceRange[0]}
                       readOnly
-                      className="w-16 p-1 border border-gray-600 bg-gray-700 text-white rounded"
+                      className="w-16 p-1 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded"
                     />
                     <input
                       type="text"
                       value={priceRange[1]}
                       readOnly
-                      className="w-16 p-1 border border-gray-600 bg-gray-700 text-white rounded"
+                      className="w-16 p-1 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded"
                     />
                   </div>
-                  <div className="h-2 bg-gray-600 rounded mt-2" />
+                  <div className="h-2 bg-gray-300 dark:bg-gray-600 rounded mt-2" />
                 </div>
                 <div>
-                  <label className="block text-gray-300 mb-1">Popular Filters</label>
-                  <select className="w-full p-2 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500">
+                  <label className="block text-gray-700 dark:text-gray-300 mb-1">Popular Filters</label>
+                  <select className="w-full p-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded focus:ring-2 focus:ring-[#8e85e6]">
                     <option>Select Option</option>
                     <option>Recently searched</option>
                     <option>Most popular</option>
                     <option>Top rated</option>
                   </select>
                 </div>
-                <button type="submit" className="md:col-span-3 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                <button type="submit" className="md:col-span-3 bg-[#8e85e6] text-white py-2 rounded hover:bg-[#7a6deb]">
                   Apply Filters
                 </button>
               </form>
@@ -297,7 +304,7 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
         <div className="pt-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {currentHotels.length === 0 ? (
-              <p className="text-gray-400 text-center col-span-full">No hotels found</p>
+              <p className="text-gray-600 dark:text-gray-400 text-center col-span-full">No hotel found</p>
             ) : (
               currentHotels.map((hotel, idx) => {
                 const isFavorite = favoriteHotels.has(hotel.hotel_id || '');
@@ -308,7 +315,7 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
                     key={hotel.hotel_id || idx}
                     href={hotel.hotel_id ? `/hotels/hotel-detail/${hotel.hotel_id}?checkIn=${encodeURIComponent(checkIn)}&checkOut=${encodeURIComponent(checkOut)}&adults=${adults}&rooms=${rooms}` : "#"}
                   >
-                    <div className="group bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+                    <div className="group bg-[#191b1d] rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
                       {/* IMAGE */}
                       <div className="relative">
                         <img
@@ -330,8 +337,8 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
                           onClick={(e) => handleFavoriteHotel(hotel, e)}
                           disabled={isSaving}
                           className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-200 ${isFavorite || isSaving
-                              ? 'bg-red-500 text-white hover:bg-red-600 scale-110'
-                              : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm'
+                            ? 'bg-red-500 text-white hover:bg-red-600 scale-110'
+                            : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm'
                             }`}
                           title={isFavorite ? 'Supprimer des favoris' : 'Ajouter aux favoris'}
                         >
@@ -347,7 +354,7 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
 
                       {/* CONTENT */}
                       <div className="p-4">
-                        <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-blue-400 line-clamp-1">
+                        <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-[#8e85e6] line-clamp-1">
                           {hotel.hotel_name || "Unknown Hotel"}
                         </h3>
                         <p className="text-gray-400 text-sm mb-3 line-clamp-2">{hotel.address || "Address N/A"}</p>
@@ -361,7 +368,7 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
                             <span className="text-gray-400">Price N/A</span>
                           )}
 
-                          <span className="text-blue-400 text-sm font-medium group-hover:text-white transition-colors">
+                          <span className="text-[#8e85e6] text-sm font-medium group-hover:text-white transition-colors">
                             View Details
                           </span>
                         </div>
@@ -376,14 +383,14 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
           {/* ====== PAGINATION ====== */}
           <div className="mt-8 flex justify-center">
             <nav aria-label="navigation">
-              <ul className="flex items-center gap-2 bg-gray-800 rounded-lg p-2">
+              <ul className="flex items-center gap-2 bg-[#191b1d] rounded-lg p-2">
                 <li>
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                     className={`p-2 rounded ${currentPage === 1
                       ? "text-gray-500 cursor-not-allowed"
-                      : "text-gray-300 hover:text-blue-400"
+                      : "text-gray-300 hover:text-[#8e85e6]"
                       }`}
                   >
                     <FaAngleLeft />
@@ -395,7 +402,7 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
                     <button
                       onClick={() => handlePageChange(page)}
                       className={`px-3 py-1 rounded ${currentPage === page
-                        ? "bg-blue-600 text-white"
+                        ? "bg-[#8e85e6] text-white"
                         : "text-gray-300 hover:bg-gray-700 hover:text-white"
                         }`}
                     >
@@ -410,7 +417,7 @@ const HotelGridLayout = ({ hotels, loading, error }: HotelGridLayoutProps) => {
                     disabled={currentPage === totalPages}
                     className={`p-2 rounded ${currentPage === totalPages
                       ? "text-gray-500 cursor-not-allowed"
-                      : "text-gray-300 hover:text-blue-400"
+                      : "text-gray-300 hover:text-[#8e85e6]"
                       }`}
                   >
                     <FaAngleRight />

@@ -53,6 +53,10 @@ model User {
   comparaisons  Comparaison[]
   savedHotels   SavedHotel[]
   
+  programmesVoyages ProgrammesVoyage[]
+  savedProgrammes   SavedProgramme[]  
+
+ 
   @@map("users")
 }
 
@@ -123,22 +127,22 @@ model Activite {
   description       String?     @db.Text
   prix              Decimal     @db.Decimal(10, 2)
   duree             String?     @db.VarChar(50)
-  
+ 
   categories        String[]    @db.Text
   typeVoyage        String?     @map("type_voyage") @db.VarChar(50)
-  
+ 
   images            String[]    @db.Text
   popularite        Int         @default(0)
-  
+ 
   niveauDifficulte  String?     @map("niveau_difficulte") @db.VarChar(20)
   ageMinimum        Int?        @map("age_minimum")
-  
+ 
   active            Boolean     @default(true)
   createdAt         DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
-  
+ 
   // Relations
   destination       Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
-  
+ 
   @@map("activites")
   @@index([destinationId])
 }
@@ -147,37 +151,37 @@ model Voyage {
   id                   String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId               String      @map("user_id") @db.Uuid
   destinationId        String?     @map("destination_id") @db.Uuid
-  
+ 
   titre                String      @db.VarChar(255)
   description          String?     @db.Text
   dateDebut            DateTime    @map("date_debut") @db.Date
   dateFin              DateTime    @map("date_fin") @db.Date
   nbPersonnes          Int         @default(1) @map("nb_personnes")
-  
+ 
   budgetInitial        Decimal     @map("budget_initial") @db.Decimal(10, 2)
   typeVoyage           String?     @map("type_voyage") @db.VarChar(50)
   gamme                String?     @db.VarChar(20)
-  
+ 
   programmeJournalier  Json        @default("[]") @map("programme_journalier") @db.JsonB
   budgetRepartition    Json        @default("{}") @map("budget_repartition") @db.JsonB
-  
+ 
   prixTotal            Decimal     @default(0) @map("prix_total") @db.Decimal(10, 2)
-  
+ 
   statut               String      @default("brouillon") @db.VarChar(50)
-  
+ 
   isFavori             Boolean     @default(false) @map("is_favori")
   partage              Boolean     @default(false)
   codePartage          String?     @unique @map("code_partage") @db.VarChar(10)
-  
+ 
   createdAt            DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt            DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  
+ 
   // Relations
   user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   destination          Destination? @relation(fields: [destinationId], references: [id])
   reservations         Reservation[]
   publications         Publication[]
-  
+ 
   @@map("voyages")
   @@index([userId])
   @@index([destinationId])
@@ -369,4 +373,52 @@ model SavedHotel {
   @@index([hotelId])
   @@index([originalHotelId])
   @@unique([userId, hotelId])
+}
+
+
+model ProgrammesVoyage {
+  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String      @map("user_id") @db.Uuid
+  destinationName String?     @map("destination_name") @db.VarChar(255)  // Changed from destinationId
+  type            String      @db.VarChar(100)
+  budget          Float       @db.Real
+  startDate       DateTime    @map("start_date") @db.Timestamptz(6)
+  endDate         DateTime    @map("end_date") @db.Timestamptz(6)
+  voyageurs       Int
+  programme       Json        @db.JsonB
+  isDone          Boolean     @default(false) @map("is_done")
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  savedProgrammes SavedProgramme[] @relation("OriginalProgramme")
+ 
+  @@map("programmes_voyage")
+  @@index([userId])
+}
+
+model SavedProgramme {
+  id                    String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String            @map("user_id") @db.Uuid
+  programmeId           String            @map("programme_id") @db.Uuid
+  originalProgrammeId   String?           @map("original_programme_id") @db.Uuid
+  
+  title                 String            @db.VarChar(255)
+  destinationName       String?           @map("destination_name") @db.VarChar(255)
+  type                  String            @db.VarChar(100)
+  budget                Float             @db.Real
+  startDate             DateTime          @map("start_date") @db.Timestamptz(6)
+  endDate               DateTime          @map("end_date") @db.Timestamptz(6)
+  voyageurs             Int
+  programme             Json              @db.JsonB
+  savedAt               DateTime          @default(now()) @map("saved_at") @db.Timestamptz(6)
+  
+  // Relations
+  user                  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalProgramme     ProgrammesVoyage? @relation("OriginalProgramme", fields: [originalProgrammeId], references: [id], onDelete: SetNull)
+  
+  @@map("saved_programmes")
+  @@index([userId])
+  @@index([programmeId])
+  @@index([originalProgrammeId])
+  @@unique([userId, programmeId])
 }

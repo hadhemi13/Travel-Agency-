@@ -48,7 +48,7 @@ const FeaturedHotels = () => {
 
   if (loading) {
     return (
-      <section className="py-12">
+      <section className="py-12 bg-gray-50 dark:bg-[#222529]">
         <div className="container mx-auto px-4 text-center text-gray-500 dark:text-gray-400">
           Loading featured hotels...
         </div>
@@ -57,10 +57,10 @@ const FeaturedHotels = () => {
   }
 
   return (
-    <section className="py-12">
+    <section className="py-12 bg-gray-50 dark:bg-[#222529]">
       <div className="container mx-auto px-4">
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-semibold text-white dark:text-gray-100">
+          <h2 className="text-3xl font-semibold text-gray-900 dark:text-white">
             Featured Hotels
           </h2>
         </div>
@@ -74,7 +74,7 @@ const FeaturedHotels = () => {
             {hotels.map((hotel) => (
               <div
                 key={hotel.id}
-                className="bg-white dark:bg-gray-800 overflow-hidden rounded-3xl shadow hover:shadow-lg transition-shadow group"
+                className="bg-[#191b1d] overflow-hidden rounded-3xl shadow hover:shadow-lg transition-shadow group"
               >
                 {/* Image */}
                 <div className="relative overflow-hidden rounded-3xl">
@@ -95,10 +95,10 @@ const FeaturedHotels = () => {
 
                 {/* Info */}
                 <div className="p-4">
-                  <h5 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                  <h5 className="text-lg font-semibold mb-2 text-white">
                     <Link
                       href={`/hotels/${hotel.id}`}
-                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                      className="hover:text-[#8e85e6] transition-colors"
                     >
                       {hotel.nom}
                     </Link>
@@ -108,12 +108,12 @@ const FeaturedHotels = () => {
                     <h6 className="text-green-600 font-medium">
                       {"$"}
                       {Number(hotel.prixMin)}
-                      <small className="ml-1 text-gray-500 dark:text-gray-400 font-light">
+                      <small className="ml-1 text-gray-400 font-light">
                         /starting at
                       </small>
                     </h6>
 
-                    <h6 className="flex items-center text-gray-700 dark:text-gray-300">
+                    <h6 className="flex items-center text-gray-300">
                       {hotel.rating?.toFixed(1) || hotel.etoiles || 0}
                       <FaStar size={18} className="text-yellow-400 ml-1" />
                     </h6>

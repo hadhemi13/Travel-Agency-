@@ -75,15 +75,7 @@ const TopNavBar = () => {
         <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrollY > 20 ? 'bg-[#191b1d] shadow-2xl' : 'bg-[#222529] shadow-lg'}`}>
             <nav className="max-w-[1400px] mx-auto px-6">
                 <div className="flex items-center justify-between h-[75px]">
-                    {/* Logo */}
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <div className="w-11 h-11 bg-gradient-to-br from-[#8e85e6] via-[#7a6deb] to-[#6f42c1] rounded-xl flex items-center justify-center shadow-lg transform group-hover:scale-105 transition-all duration-300 group-hover:shadow-[#8e85e6]/50">
-                            <FaPlane className="text-white text-xl rotate-45 group-hover:rotate-[60deg] transition-transform duration-300" />
-                        </div>
-                        <span className="text-white text-2xl font-bold tracking-tight">{t('nav.booking')}</span>
-                    </Link>
-
-                    {/* Menu hamburger mobile */}
+                    {/* Menu hamburger mobile - seulement sur mobile */}
                     <button
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                         className="lg:hidden flex items-center gap-2 p-2.5 text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31] rounded-lg transition-all duration-300"
@@ -105,8 +97,16 @@ const TopNavBar = () => {
                         </div>
                     </button>
 
-                    {/* Navigation principale (Desktop) */}
-                    <div className="hidden lg:flex items-center flex-1 ml-12 gap-1.5">
+                    {/* Logo - seulement sur desktop, à droite */}
+                    <Link href="/" className="hidden lg:flex items-center gap-3 group">
+                        <div className="w-11 h-11 bg-gradient-to-br from-[#8e85e6] via-[#7a6deb] to-[#6f42c1] rounded-xl flex items-center justify-center shadow-lg transform group-hover:scale-105 transition-all duration-300 group-hover:shadow-[#8e85e6]/50">
+                            <FaPlane className="text-white text-xl rotate-45 group-hover:rotate-[60deg] transition-transform duration-300" />
+                        </div>
+                        <span className="text-white text-2xl font-bold tracking-tight">TripMind</span>
+                    </Link>
+
+                    {/* Navigation principale (Desktop) - à gauche */}
+                    <div className="hidden lg:flex items-center flex-1 gap-1.5">
                         <Link
                             href="/comparateur"
                             className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group ${pathname === '/comparateur' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
@@ -114,13 +114,17 @@ const TopNavBar = () => {
                             <span className="relative z-10">Comparateur</span>
                             {pathname === '/comparateur' && <span className="absolute inset-0 bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] rounded-lg opacity-80"></span>}
                         </Link>
+
+
                         <Link
-                            href="/user-profile/wishlist"
-                            className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group ${pathname === '/user-profile/wishlist' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
+                            href="/List-trip"
+                            className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group ${pathname === '/List-trip' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
                         >
                             <span className="relative z-10">Historique</span>
-                            {pathname === '/user-profile/wishlist' && <span className="absolute inset-0 bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] rounded-lg opacity-80"></span>}
+                            {pathname === '/List-trip' && <span className="absolute inset-0 bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] rounded-lg opacity-80"></span>}
                         </Link>
+
+
                         {/* Favoris Dropdown */}
                         <div className="relative" ref={favoritesRef}>
                             <button
@@ -156,13 +160,7 @@ const TopNavBar = () => {
                                 </div>
                             )}
                         </div>
-                        <Link
-                            href="/hotels"
-                            className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group ${pathname === '/hotels' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
-                        >
-                            <span className="relative z-10">Hotels</span>
-                            {pathname === '/hotels' && <span className="absolute inset-0 bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] rounded-lg opacity-80"></span>}
-                        </Link>
+
                         <Link
                             href="/user-profile/profile"
                             className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group ${pathname === '/user-profile/profile' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
@@ -178,11 +176,11 @@ const TopNavBar = () => {
                             {pathname === '/reservations' && <span className="absolute inset-0 bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] rounded-lg opacity-80"></span>}
                         </Link>
                         <Link
-                            href="/tours"
-                            className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group ${pathname === '/tours' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
+                            href="/generate-trip"
+                            className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group ${pathname === '/generate-trip' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
                         >
-                            <span className="relative z-10">Tours</span>
-                            {pathname === '/tours' && <span className="absolute inset-0 bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] rounded-lg opacity-80"></span>}
+                            <span className="relative z-10">suggestions</span>
+                            {pathname === '/generate-trip' && <span className="absolute inset-0 bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] rounded-lg opacity-80"></span>}
                         </Link>
                     </div>
 
@@ -432,8 +430,8 @@ const TopNavBar = () => {
                                     </div>
                                 </div>
                                 <Link
-                                    href="/historique"
-                                    className={`block px-5 py-3.5 font-medium rounded-xl transition-all duration-300 ${pathname === '/historique' ? 'text-white bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] shadow-lg' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
+                                    href="/List-trip"
+                                    className={`block px-5 py-3.5 font-medium rounded-xl transition-all duration-300 ${pathname === '/List-trip' ? 'text-white bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] shadow-lg' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
                                 >
                                     Historique
                                 </Link>
@@ -456,10 +454,10 @@ const TopNavBar = () => {
                                     Réservation
                                 </Link>
                                 <Link
-                                    href="/tours"
-                                    className={`block px-5 py-3.5 font-medium rounded-xl transition-all duration-300 ${pathname === '/tours' ? 'text-white bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] shadow-lg' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
+                                    href="/generate-trip"
+                                    className={`block px-5 py-3.5 font-medium rounded-xl transition-all duration-300 ${pathname === '/generate-trip' ? 'text-white bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] shadow-lg' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
                                 >
-                                    Tours
+                                    suggestions
                                 </Link>
                             </div>
                         </div>
