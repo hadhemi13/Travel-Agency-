@@ -38,10 +38,17 @@ Génère un programme de voyage détaillé jour par jour adapté aux préférenc
 4. Lieu à visiter : attraction principale ou quartier recommandé
 5. Option de repas : en accord avec les préférences culinaires
 6. Coût estimé pour la journée
+7. Catégorie de chaque activité parmi : culture, nature, gastronomie, aventure, détente, shopping, vie nocturne, sport
+8. Temps estimé en heures pour chaque moment (matin, après-midi, soir)
+9. Distance en km parcourue durant cette journée
+10. Nom et nombre d'étoiles de l'hôtel recommandé (même hôtel pour tout le séjour)
 
 Retourne le résultat sous forme JSON valide :
 [
-  { "day": 1, "matin": "Activité", "apresmidi": "Activité", "soir": "Activité", "lieu": "Lieu à visiter", "repas": "Option repas", "cout": 100 },
+  { "day": 1, "matin": "Activité", "apresmidi": "Activité", "soir": "Activité", "lieu": "Lieu à visiter", "repas": "Option repas", "cout": 100, "categorieActivites": { "matin": "culture", "apresmidi": "nature", "soir": "gastronomie" },
+    "tempsEstime": { "matin": 2, "apresmidi": 3, "soir": 2 },
+    "distanceKm": 10,
+    "hotel": { "nom": "Nom de l'hôtel", "etoiles": 4 } },
   ...
 ]
 `;
