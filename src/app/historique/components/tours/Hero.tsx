@@ -10,6 +10,11 @@ interface FilterState {
     type: string
     priceMin: string
     priceMax: string
+    duration: string
+    rating: string
+    tourType: string
+    dateFrom: string
+    dateTo: string
 }
 
 const Hero = ({ filters, setFilters, totalTours, favoriteTours, showFavorites = false }: {
@@ -90,70 +95,67 @@ const Hero = ({ filters, setFilters, totalTours, favoriteTours, showFavorites = 
                 <div className="relative -mt-16 sm:-mt-20 mb-8">
                     <div className="bg-white dark:bg-[#222529] shadow-2xl dark:shadow-[0_1rem_3rem_rgba(0,0,0,0.5)] rounded-2xl p-6">
                         {/* Main Search */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                            {/* Destination */}
-                            <div className="space-y-2">
-                                <label className="flex items-center text-sm font-semibold text-gray-700 dark:text-white">
-                                    <BsGeoAlt className="text-green-600 dark:text-[#8e85e6] mr-2" />
-                                    🌍 Destination
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Rechercher par destination..."
-                                    className="w-full px-4 py-3 border-b-2 border-gray-200 dark:border-[rgba(255,255,255,0.07)] bg-transparent focus:border-green-600 dark:focus:border-[#8e85e6] focus:outline-none transition-colors text-gray-900 dark:text-[#b0b0b8] rounded-lg"
-                                    value={filters.destination}
-                                    onChange={(e) => setFilters({ ...filters, destination: e.target.value })}
-                                />
-                            </div>
-
-                            {/* Tour Type */}
-                            <div className="space-y-2">
-                                <label className="flex items-center text-sm font-semibold text-gray-700 dark:text-white">
-                                    <span className="text-green-600 dark:text-[#8e85e6] mr-2">🎯</span>
-                                    Type de tour
-                                </label>
-                                <select
-                                    className="w-full px-4 py-3 border-b-2 border-gray-200 dark:border-[rgba(255,255,255,0.07)] bg-transparent focus:border-green-600 dark:focus:border-[#8e85e6] focus:outline-none transition-colors text-gray-900 dark:text-[#b0b0b8] rounded-lg"
-                                    value={filters.type}
-                                    onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-                                >
-                                    <option value="">Tous les types</option>
-                                    <option value="Adventure">🏔️ Adventure</option>
-                                    <option value="Cultural">🏛️ Cultural</option>
-                                    <option value="Beach">🏖️ Beach</option>
-                                    <option value="City">🏙️ City</option>
-                                    <option value="Nature">🌿 Nature</option>
-                                    <option value="Luxury">✨ Luxury</option>
-                                </select>
-                            </div>
-
-                            {/* Price Range */}
-                            <div className="space-y-2">
-                                <label className="flex items-center text-sm font-semibold text-gray-700 dark:text-white">
-                                    <span className="text-green-600 dark:text-[#8e85e6] mr-2">💰</span>
-                                    Prix ($/total)
-                                </label>
-                                <div className="flex gap-2">
+                        <div className="flex flex-col lg:flex-row gap-4 mb-4">
+                            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Destination */}
+                                <div className="space-y-2">
+                                    <label className="flex items-center text-sm font-semibold text-gray-700 dark:text-white">
+                                        <BsGeoAlt className="text-green-600 dark:text-[#8e85e6] mr-2" />
+                                        🌍 Destination
+                                    </label>
                                     <input
-                                        type="number"
-                                        placeholder="Min"
-                                        className="w-full px-3 py-3 border-b-2 border-gray-200 dark:border-[rgba(255,255,255,0.07)] bg-transparent focus:border-green-600 dark:focus:border-[#8e85e6] focus:outline-none transition-colors text-gray-900 dark:text-[#b0b0b8] rounded-lg"
-                                        value={filters.priceMin}
-                                        onChange={(e) => setFilters({ ...filters, priceMin: e.target.value })}
+                                        type="text"
+                                        placeholder="Rechercher par destination..."
+                                        className="w-full px-4 py-3 border-b-2 border-gray-200 dark:border-[rgba(255,255,255,0.07)] bg-transparent focus:border-green-600 dark:focus:border-[#8e85e6] focus:outline-none transition-colors text-gray-900 dark:text-[#b0b0b8] rounded-lg"
+                                        value={filters.destination}
+                                        onChange={(e) => setFilters({ ...filters, destination: e.target.value })}
                                     />
-                                    <input
-                                        type="number"
-                                        placeholder="Max"
-                                        className="w-full px-3 py-3 border-b-2 border-gray-200 dark:border-[rgba(255,255,255,0.07)] bg-transparent focus:border-green-600 dark:focus:border-[#8e85e6] focus:outline-none transition-colors text-gray-900 dark:text-[#b0b0b8] rounded-lg"
-                                        value={filters.priceMax}
-                                        onChange={(e) => setFilters({ ...filters, priceMax: e.target.value })}
-                                    />
+                                </div>
+
+                                {/* Price Range */}
+                                <div className="space-y-2">
+                                    <label className="flex items-center text-sm font-semibold text-gray-700 dark:text-white">
+                                        <span className="text-green-600 dark:text-[#8e85e6] mr-2">💰</span>
+                                        Prix (€/total)
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="number"
+                                            placeholder="Min"
+                                            className="w-full px-3 py-3 border-b-2 border-gray-200 dark:border-[rgba(255,255,255,0.07)] bg-transparent focus:border-green-600 dark:focus:border-[#8e85e6] focus:outline-none transition-colors text-gray-900 dark:text-[#b0b0b8] rounded-lg"
+                                            value={filters.priceMin}
+                                            onChange={(e) => setFilters({ ...filters, priceMin: e.target.value })}
+                                        />
+                                        <input
+                                            type="number"
+                                            placeholder="Max"
+                                            className="w-full px-3 py-3 border-b-2 border-gray-200 dark:border-[rgba(255,255,255,0.07)] bg-transparent focus:border-green-600 dark:focus:border-[#8e85e6] focus:outline-none transition-colors text-gray-900 dark:text-[#b0b0b8] rounded-lg"
+                                            value={filters.priceMax}
+                                            onChange={(e) => setFilters({ ...filters, priceMax: e.target.value })}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Search Button */}
-                            <div className="flex items-end">
-                                <button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 dark:from-[#8e85e6] dark:to-[#8e85e6] hover:from-green-700 hover:to-emerald-700 dark:hover:from-[#7a6deb] dark:hover:to-[#7a6deb] text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2">
+                            {/* Search Button - Aligned to the right */}
+                            <div className="flex items-end justify-end lg:justify-start gap-2">
+                                <button
+                                    onClick={() => setFilters({
+                                        destination: '',
+                                        type: '',
+                                        priceMin: '',
+                                        priceMax: '',
+                                        duration: '',
+                                        rating: '',
+                                        tourType: '',
+                                        dateFrom: '',
+                                        dateTo: ''
+                                    })}
+                                    className="w-full lg:w-auto min-w-[120px] bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2"
+                                >
+                                    Réinitialiser
+                                </button>
+                                <button className="w-full lg:w-auto min-w-[140px] bg-gradient-to-r from-green-600 to-emerald-600 dark:from-[#8e85e6] dark:to-[#8e85e6] hover:from-green-700 hover:to-emerald-700 dark:hover:from-[#7a6deb] dark:hover:to-[#7a6deb] text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2">
                                     <BsSearch className="text-lg" />
                                     Filtrer
                                 </button>
@@ -173,10 +175,66 @@ const Hero = ({ filters, setFilters, totalTours, favoriteTours, showFavorites = 
 
                         {/* Advanced Filters */}
                         {showFilters && (
-                            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-[rgba(255,255,255,0.07)] animate-fadeIn">
-                                <p className="text-center text-gray-500 dark:text-gray-400">
-                                    Filtres avancés disponibles prochainement
-                                </p>
+                            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-[rgba(255,255,255,0.07)] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
+                                {/* Tour Type Filter */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-gray-700 dark:text-white">
+                                        🎯 Type de tour
+                                    </label>
+                                    <select
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-[rgba(255,255,255,0.07)] bg-white dark:bg-[#2a2c31] rounded-lg focus:border-green-600 dark:focus:border-[#8e85e6] focus:outline-none transition-colors text-gray-900 dark:text-[#b0b0b8]"
+                                        value={filters.tourType}
+                                        onChange={(e) => setFilters({ ...filters, tourType: e.target.value })}
+                                    >
+                                        <option value="all">Tous les types</option>
+                                        <option value="Aventure">🏔️ Aventure</option>
+                                        <option value="Plage">🏖️ Plage</option>
+                                        <option value="Désert">🏜️ Désert</option>
+                                        <option value="Histoire">🏛️ Histoire</option>
+                                        <option value="Culture">🎭 Culture</option>
+                                        <option value="Relaxation">🧘 Relaxation</option>
+                                        <option value="Adventure">🏔️ Adventure</option>
+
+                                    </select>
+                                </div>
+
+                                {/* Duration Filter */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-gray-700 dark:text-white">
+                                        ⏱️ Durée
+                                    </label>
+                                    <select
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-[rgba(255,255,255,0.07)] bg-white dark:bg-[#2a2c31] rounded-lg focus:border-green-600 dark:focus:border-[#8e85e6] focus:outline-none transition-colors text-gray-900 dark:text-[#b0b0b8]"
+                                        value={filters.duration}
+                                        onChange={(e) => setFilters({ ...filters, duration: e.target.value })}
+                                    >
+                                        <option value="all">Toutes les durées</option>
+                                        <option value="1-3">1-3 jours</option>
+                                        <option value="4-7">4-7 jours</option>
+                                        <option value="8-14">8-14 jours</option>
+                                        <option value="15+">15+ jours</option>
+                                    </select>
+                                </div>
+
+                                {/* Rating Filter */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-gray-700 dark:text-white">
+                                        ⭐ Note minimale
+                                    </label>
+                                    <select
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-[rgba(255,255,255,0.07)] bg-white dark:bg-[#2a2c31] rounded-lg focus:border-green-600 dark:focus:border-[#8e85e6] focus:outline-none transition-colors text-gray-900 dark:text-[#b0b0b8]"
+                                        value={filters.rating}
+                                        onChange={(e) => setFilters({ ...filters, rating: e.target.value })}
+                                    >
+                                        <option value="all">Toutes les notes</option>
+                                        <option value="9">9+ Excellent</option>
+                                        <option value="8">8+ Très bien</option>
+                                        <option value="7">7+ Bien</option>
+                                        <option value="6">6+ Correct</option>
+                                        <option value="5">5+ Acceptable</option>
+                                    </select>
+                                </div>
+
                             </div>
                         )}
                     </div>
@@ -185,7 +243,7 @@ const Hero = ({ filters, setFilters, totalTours, favoriteTours, showFavorites = 
 
             {/* Tours List Section */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <TourCardList showFavorites={showFavorites} onFavoriteChange={fetchFavoriteCount} />
+                <TourCardList showFavorites={showFavorites} onFavoriteChange={fetchFavoriteCount} filters={filters} />
             </div>
         </section>
     )

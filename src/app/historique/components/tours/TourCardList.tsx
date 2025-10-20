@@ -25,12 +25,25 @@ interface FavoriteProgramme {
     duration: number;
 }
 
+interface FilterState {
+    destination: string
+    type: string
+    priceMin: string
+    priceMax: string
+    duration: string
+    rating: string
+    tourType: string
+    dateFrom: string
+    dateTo: string
+}
+
 interface TourCardListProps {
     showFavorites?: boolean;
     onFavoriteChange?: () => void;
+    filters?: FilterState;
 }
 
-const TourCardList = ({ showFavorites = false, onFavoriteChange }: TourCardListProps) => {
+const TourCardList = ({ showFavorites = false, onFavoriteChange, filters }: TourCardListProps) => {
     const { data: session, status } = useSession();
     const [sortBy, setSortBy] = useState('recent')
     const [currentPage, setCurrentPage] = useState(1)
@@ -46,6 +59,11 @@ const TourCardList = ({ showFavorites = false, onFavoriteChange }: TourCardListP
             setLoading(false);
         }
     }, [status, showFavorites]);
+
+    // Réinitialiser la page quand les filtres changent
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filters]);
 
 
     const fetchFavorites = async () => {
@@ -113,8 +131,58 @@ const TourCardList = ({ showFavorites = false, onFavoriteChange }: TourCardListP
     // Utiliser les favoris ou l'historique selon le mode
     const allTours = showFavorites ? favoritesAsTours : tourHistory;
 
+    // Appliquer les filtres
+    const filteredTours = allTours.filter((tour) => {
+        if (!filters) return true;
+
+        // Filtre par destination
+        if (filters.destination && !tour.name.toLowerCase().includes(filters.destination.toLowerCase())) {
+            return false;
+        }
+
+        // Filtre par type de tour
+        if (filters.tourType && filters.tourType !== 'all' && tour.type !== filters.tourType) {
+            return false;
+        }
+
+        // Filtre par prix
+        if (filters.priceMin && tour.price < parseFloat(filters.priceMin)) {
+            return false;
+        }
+        if (filters.priceMax && tour.price > parseFloat(filters.priceMax)) {
+            return false;
+        }
+
+        // Filtre par durée
+        if (filters.duration && filters.duration !== 'all') {
+            const tourDays = tour.days;
+            switch (filters.duration) {
+                case '1-3':
+                    if (tourDays < 1 || tourDays > 3) return false;
+                    break;
+                case '4-7':
+                    if (tourDays < 4 || tourDays > 7) return false;
+                    break;
+                case '8-14':
+                    if (tourDays < 8 || tourDays > 14) return false;
+                    break;
+                case '15+':
+                    if (tourDays < 15) return false;
+                    break;
+            }
+        }
+
+        // Filtre par date (si disponible dans les données)
+        if (filters.dateFrom || filters.dateTo) {
+            // Note: Cette logique dépend de la structure de vos données de date
+            // Vous devrez peut-être l'adapter selon vos besoins
+        }
+
+        return true;
+    });
+
     // Sort tours
-    const sortedTours = [...allTours].sort((a, b) => {
+    const sortedTours = [...filteredTours].sort((a, b) => {
         switch (sortBy) {
             case 'recent':
                 return new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime()

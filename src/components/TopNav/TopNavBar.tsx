@@ -175,13 +175,7 @@ const TopNavBar = () => {
                             <span className="relative z-10">Profile</span>
                             {pathname === '/user-profile/profile' && <span className="absolute inset-0 bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] rounded-lg opacity-80"></span>}
                         </Link>
-                        <Link
-                            href="/reservations"
-                            className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group ${pathname === '/reservations' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
-                        >
-                            <span className="relative z-10">Réservation</span>
-                            {pathname === '/reservations' && <span className="absolute inset-0 bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] rounded-lg opacity-80"></span>}
-                        </Link>
+                        
                         <Link
                             href="/generate-trip"
                             className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group ${pathname === '/generate-trip' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
