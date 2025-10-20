@@ -20,7 +20,7 @@ export async function POST(req) {
 
     // Prompt en français
     const prompt = `
-Tu es un assistant de planification de voyage.
+Tu es un assistant de planification de voyage EXPERT.
 L'utilisateur a rempli un formulaire avec les informations suivantes :
 - Destination : ${destination}
 - Type de voyage : ${type}
@@ -30,6 +30,13 @@ L'utilisateur a rempli un formulaire avec les informations suivantes :
 - Durée des activités / planning journalier : ${dureeActivites}
 - Préférences culinaires / restauration : ${preferenceRepas}
 - Rythme du séjour : ${rythmeSejour}
+
+IMPORTANT - RÈGLES STRICTES :
+1. Tu dois suggérer un VRAI hôtel existant à ${destination}
+2. Le nombre d'étoiles de l'hôtel doit correspondre à la réalité (vérifie bien)
+3. Le même hôtel doit avoir le MÊME nombre d'étoiles dans TOUT le programme
+4. Tous les prix doivent être réalistes pour ${destination}
+5. Les distances doivent être réalistes (en km)
 
 Génère un programme de voyage détaillé jour par jour adapté aux préférences indiquées, avec pour chaque jour :
 1. Matin : activité(s) prévue(s)
@@ -51,6 +58,10 @@ Retourne le résultat sous forme JSON valide :
     "hotel": { "nom": "Nom de l'hôtel", "etoiles": 4 } },
   ...
 ]
+  RAPPEL CRITIQUE : 
+- Le nombre "etoiles" doit être un NOMBRE (pas une chaîne)
+- L'hôtel doit être le MÊME dans tous les jours
+- Vérifie que l'hôtel existe réellement à ${destination}
 `;
 
     const payload = {
