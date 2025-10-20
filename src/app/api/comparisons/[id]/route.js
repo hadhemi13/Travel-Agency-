@@ -4,7 +4,7 @@ import Comparison from '@/models/Comparison';
 
 export async function GET(request, { params }) {
   try {
-    // 🔴 FIX Next.js 15: await params
+    // 🔴 FIX : Await params (Next.js 15+)
     const { id } = await params;
     
     console.log('🔍 Récupération comparaison ID:', id);
@@ -12,8 +12,8 @@ export async function GET(request, { params }) {
     // Connexion à MongoDB
     await connectToDatabase();
 
-    // Récupérer la comparaison
-    const comparison = await Comparison.findById(id);
+    // Récupérer la comparaison avec .lean() pour avoir un objet JS pur
+    const comparison = await Comparison.findById(id).lean();
 
     if (!comparison) {
       console.log('❌ Comparaison non trouvée');
@@ -24,34 +24,47 @@ export async function GET(request, { params }) {
     }
 
     console.log('✅ Comparaison trouvée:', comparison._id);
-    console.log('📊 programMetrics:', comparison.programMetrics);
-
-    // 🔴 TRANSFORMATION CRITIQUE: programMetrics → programs (pour le frontend)
-    const transformedComparison = {
-      _id: comparison._id,
-      programIds: comparison.programIds,
-      userId: comparison.userId,
-      destination: comparison.destination,
-      createdAt: comparison.createdAt,
-      expiresAt: comparison.expiresAt,
-      
-      // ✅ On transforme programMetrics en programs pour OurListings
-      programs: comparison.programMetrics.map((pm, index) => ({
+    console.log('📊 Clés disponibles:', Object.keys(comparison));
+    
+    // 🔴 FIX : Vérifier tous les champs possibles
+    let programs = [];
+    
+    if (comparison.programs && Array.isArray(comparison.programs) && comparison.programs.length > 0) {
+      console.log('✅ Format "programs" détecté, nombre:', comparison.programs.length);
+      programs = comparison.programs;
+    } else if (comparison.programMetrics && Array.isArray(comparison.programMetrics) && comparison.programMetrics.length > 0) {
+      console.log('🔄 Format "programMetrics" détecté, transformation...');
+      programs = comparison.programMetrics.map((pm, index) => ({
         id: pm.programId,
-        name: `Programme ${index + 1} - ${comparison.destination}`,
+        name: `${comparison.destination} - Programme ${index + 1}`,
         image: '/assets/images/default-trip.jpg',
         totalCost: pm.metrics.totalCost.numericValue,
         numberOfDays: pm.metrics.numberOfDays.numericValue,
+        rawData: [],
         metrics: pm.metrics,
         categories: pm.categories
-      }))
-    };
+      }));
+    } else {
+      console.log('❌ Structure de la comparaison:', JSON.stringify(comparison, null, 2));
+      return NextResponse.json(
+        { error: 'Aucun programme dans cette comparaison' },
+        { status: 404 }
+      );
+    }
 
-    console.log('✅ Transformation effectuée, programmes:', transformedComparison.programs.length);
+    console.log('✅ Programmes extraits:', programs.length);
 
+    // Retourner la comparaison avec le format unifié
     return NextResponse.json({
       success: true,
-      comparison: transformedComparison
+      comparison: {
+        _id: comparison._id.toString(),
+        userId: comparison.userId,
+        destination: comparison.destination,
+        programs: programs,
+        recommendation: comparison.recommendation || null,
+        createdAt: comparison.createdAt
+      }
     });
 
   } catch (error) {

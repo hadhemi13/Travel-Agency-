@@ -17,10 +17,13 @@ export async function POST(req) {
     const apiKey = process.env.GOOGLE_API_KEY;
 
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
+const start = new Date(startDate);
+const end = new Date(endDate);
+const numberOfDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+const dailyBudget = Math.floor(budget / numberOfDays);
     // Prompt en français
     const prompt = `
-Tu es un assistant de planification de voyage EXPERT.
+Tu es un assistant de planification de voyage EXPERT  avec une contrainte STRICTE de budget..
 L'utilisateur a rempli un formulaire avec les informations suivantes :
 - Destination : ${destination}
 - Type de voyage : ${type}
@@ -30,6 +33,23 @@ L'utilisateur a rempli un formulaire avec les informations suivantes :
 - Durée des activités / planning journalier : ${dureeActivites}
 - Préférences culinaires / restauration : ${preferenceRepas}
 - Rythme du séjour : ${rythmeSejour}
+🔴 CONTRAINTE BUDGÉTAIRE ABSOLUE 🔴
+- Budget TOTAL disponible : ${budget}€ pour ${numberOfDays} jours
+- Budget par jour : environ ${dailyBudget}€
+- Le coût TOTAL du programme doit être entre ${Math.floor(budget * 0.95)}€ et ${Math.floor(budget * 1.05)}€
+- Chaque jour doit coûter environ ${dailyBudget}€ (±10%)
+
+RÉPARTITION BUDGÉTAIRE OBLIGATOIRE par jour :
+- Hébergement : ${Math.floor(dailyBudget * 0.35)}€
+- Activités : ${Math.floor(dailyBudget * 0.40)}€
+- Repas : ${Math.floor(dailyBudget * 0.20)}€
+- Transport : ${Math.floor(dailyBudget * 0.05)}€
+
+RÈGLES DE STANDING selon le budget journalier :
+- Si ${dailyBudget}€ < 150€/jour → Hôtel 2 étoiles, activités gratuites/pas chères
+- Si ${dailyBudget}€ entre 150-300€/jour → Hôtel 3 étoiles, mix activités gratuites/payantes
+- Si ${dailyBudget}€ entre 300-500€/jour → Hôtel 4 étoiles, activités variées
+- Si ${dailyBudget}€ > 500€/jour → Hôtel 4-5 étoiles, activités premium
 
 IMPORTANT - RÈGLES STRICTES :
 1. Tu dois suggérer un VRAI hôtel existant à ${destination}
@@ -62,6 +82,8 @@ Retourne le résultat sous forme JSON valide :
 - Le nombre "etoiles" doit être un NOMBRE (pas une chaîne)
 - L'hôtel doit être le MÊME dans tous les jours
 - Vérifie que l'hôtel existe réellement à ${destination}
+- LA SOMME DES "cout" DOIT ÊTRE ≈ ${budget}€
+- Adapte le standing au budget journalier de ${dailyBudget}€
 `;
 
     const payload = {

@@ -137,10 +137,18 @@ function extractCategories(programme: any[]) {
 
 // Fonction pour déterminer les gagnants
 function determineWinners(metrics1: any, metrics2: any) {
+  // Le moins cher gagne
   if (metrics1.totalCost.numericValue < metrics2.totalCost.numericValue) {
     metrics1.totalCost.isWinner = true;
   } else if (metrics2.totalCost.numericValue < metrics1.totalCost.numericValue) {
     metrics2.totalCost.isWinner = true;
+  }
+  
+  // Le moins cher par jour gagne
+  if (metrics1.avgCostPerDay.numericValue < metrics2.avgCostPerDay.numericValue) {
+    metrics1.avgCostPerDay.isWinner = true;
+  } else if (metrics2.avgCostPerDay.numericValue < metrics1.avgCostPerDay.numericValue) {
+    metrics2.avgCostPerDay.isWinner = true;
   }
   
   const higherIsBetter = [
@@ -148,9 +156,12 @@ function determineWinners(metrics1: any, metrics2: any) {
   ];
   
   higherIsBetter.forEach(metric => {
-    if (metrics1[metric].numericValue > metrics2[metric].numericValue) {
+    const val1 = metric === 'valueForMoney' ? metrics1[metric].score : metrics1[metric].numericValue;
+    const val2 = metric === 'valueForMoney' ? metrics2[metric].score : metrics2[metric].numericValue;
+    
+    if (val1 > val2) {
       metrics1[metric].isWinner = true;
-    } else if (metrics2[metric].numericValue > metrics1[metric].numericValue) {
+    } else if (val2 > val1) {
       metrics2[metric].isWinner = true;
     }
   });
@@ -162,21 +173,146 @@ function determineWinners(metrics1: any, metrics2: any) {
   }
 }
 
+// 🔴 NOUVELLE FONCTION : Générer une recommandation intelligente
+function generateSmartRecommendation(
+  metrics1: any,
+  metrics2: any,
+  categories1: any,
+  categories2: any,
+  userBudget: number,
+  userType: string
+) {
+  const recommendations = [];
+  let bestProgram = 0; // 0 = égalité, 1 = programme 1, 2 = programme 2
+  let score1 = 0;
+  let score2 = 0;
+
+  // Analyse du budget
+  const budgetDiff1 = Math.abs(metrics1.totalCost.numericValue - userBudget);
+  const budgetDiff2 = Math.abs(metrics2.totalCost.numericValue - userBudget);
+  
+  if (budgetDiff1 < budgetDiff2) {
+    recommendations.push(`Le **Programme 1** est plus proche de votre budget initial (${userBudget}€) avec un écart de seulement ${budgetDiff1}€.`);
+    score1 += 3;
+  } else if (budgetDiff2 < budgetDiff1) {
+    recommendations.push(`Le **Programme 2** respecte mieux votre budget avec un écart de ${budgetDiff2}€ contre ${budgetDiff1}€ pour le Programme 1.`);
+    score2 += 3;
+  }
+
+  // Analyse du rapport qualité-prix
+  if (metrics1.valueForMoney.score > metrics2.valueForMoney.score) {
+    recommendations.push(`Le **Programme 1** offre un meilleur rapport qualité-prix avec ${metrics1.totalActivities.numericValue} activités pour ${metrics1.totalCost.numericValue}€.`);
+    score1 += 2;
+  } else if (metrics2.valueForMoney.score > metrics1.valueForMoney.score) {
+    recommendations.push(`Le **Programme 2** présente un meilleur rapport qualité-prix (${metrics2.valueForMoney.value}).`);
+    score2 += 2;
+  }
+
+  // Analyse de l'hôtel
+  if (metrics1.hotel.stars > metrics2.hotel.stars) {
+    recommendations.push(`Le **Programme 1** propose un hôtel plus luxueux : **${metrics1.hotel.value}** (${metrics1.hotel.stars}★) contre **${metrics2.hotel.value}** (${metrics2.hotel.stars}★).`);
+    score1 += 1;
+  } else if (metrics2.hotel.stars > metrics1.hotel.stars) {
+    recommendations.push(`Le **Programme 2** vous offre un meilleur hébergement avec ${metrics2.hotel.stars} étoiles.`);
+    score2 += 1;
+  }
+
+  // Analyse de la diversité des activités
+  if (metrics1.activityDiversity.numericValue > metrics2.activityDiversity.numericValue) {
+    recommendations.push(`Le **Programme 1** est plus varié avec ${metrics1.activityDiversity.numericValue} types d'activités différentes.`);
+    score1 += 2;
+  } else if (metrics2.activityDiversity.numericValue > metrics1.activityDiversity.numericValue) {
+    recommendations.push(`Le **Programme 2** offre plus de diversité (${metrics2.activityDiversity.numericValue} catégories d'activités).`);
+    score2 += 2;
+  }
+
+  // Analyse du type de voyage
+  const typePreferences: { [key: string]: string[] } = {
+    'Aventure': ['adventure', 'nature', 'sports'],
+    'Culturel': ['culture', 'gastronomy'],
+    'Détente': ['relaxation', 'gastronomy'],
+    'Shopping': ['shopping', 'nightlife'],
+    'Romantique': ['gastronomy', 'relaxation', 'culture']
+  };
+
+  if (typePreferences[userType]) {
+    const preferredCategories = typePreferences[userType];
+    let matchScore1 = 0;
+    let matchScore2 = 0;
+
+    preferredCategories.forEach(cat => {
+      if (categories1[cat]) matchScore1++;
+      if (categories2[cat]) matchScore2++;
+    });
+
+    if (matchScore1 > matchScore2) {
+      recommendations.push(`Le **Programme 1** correspond mieux à votre type de voyage "${userType}" avec ${matchScore1} catégories pertinentes.`);
+      score1 += 3;
+    } else if (matchScore2 > matchScore1) {
+      recommendations.push(`Le **Programme 2** est plus adapté à un voyage "${userType}".`);
+      score2 += 3;
+    }
+  }
+
+  // Analyse de l'intensité
+  if (metrics1.avgIntensity.numericValue < metrics2.avgIntensity.numericValue) {
+    recommendations.push(`Le **Programme 1** est plus relaxant avec ${metrics1.avgIntensity.value} d'activités par jour.`);
+  } else if (metrics2.avgIntensity.numericValue < metrics1.avgIntensity.numericValue) {
+    recommendations.push(`Le **Programme 2** propose un rythme plus tranquille (${metrics2.avgIntensity.value}).`);
+  }
+
+  // Analyse de la distance
+  if (metrics1.totalDistance.numericValue < metrics2.totalDistance.numericValue) {
+    recommendations.push(`Le **Programme 1** implique moins de déplacements (${metrics1.totalDistance.value} contre ${metrics2.totalDistance.value}).`);
+  } else if (metrics2.totalDistance.numericValue < metrics1.totalDistance.numericValue) {
+    recommendations.push(`Le **Programme 2** nécessite moins de transport.`);
+  }
+
+  // Déterminer le meilleur programme
+  if (score1 > score2) {
+    bestProgram = 1;
+  } else if (score2 > score1) {
+    bestProgram = 2;
+  }
+
+  // Générer la conclusion
+  let conclusion = '';
+  if (bestProgram === 1) {
+    conclusion = `🏆 **Notre recommandation : Programme 1**\n\nBasé sur vos critères (budget de ${userBudget}€, voyage ${userType}), le Programme 1 semble être le meilleur choix. Il offre ${
+      budgetDiff1 < budgetDiff2 ? 'un meilleur respect de votre budget' : ''
+    } ${
+      metrics1.valueForMoney.score > metrics2.valueForMoney.score ? 'et un excellent rapport qualité-prix' : ''
+    }.`;
+  } else if (bestProgram === 2) {
+    conclusion = `🏆 **Notre recommandation : Programme 2**\n\nLe Programme 2 correspond mieux à vos attentes avec ${
+      budgetDiff2 < budgetDiff1 ? 'un respect optimal de votre budget' : ''
+    } ${
+      metrics2.hotel.stars > metrics1.hotel.stars ? 'et un hébergement de meilleure qualité' : ''
+    }.`;
+  } else {
+    conclusion = `⚖️ **Les deux programmes sont équivalents**\n\nLes deux options offrent une qualité similaire. Choisissez selon vos préférences personnelles : le Programme 1 pour ${metrics1.hotel.value} ou le Programme 2 pour ${metrics2.hotel.value}.`;
+  }
+
+  return {
+    recommendations: recommendations.join('\n\n'),
+    conclusion,
+    scores: { program1: score1, program2: score2 },
+    bestProgram
+  };
+}
+
 export async function comparePrograms(
   program1Data: ProgramData,
   program2Data: ProgramData
 ) {
   try {
     console.log('🚀 DÉBUT comparePrograms');
-    console.log('📦 Program1 ID:', program1Data.supabaseId);
-    console.log('📦 Program2 ID:', program2Data.supabaseId);
 
     // 1. Vérifier l'authentification
     const session = await getServerSession(authOptions as AuthOptions);
     const userId = (session?.user as any)?.id;
 
     if (!userId) {
-      console.log('❌ User non authentifié');
       return {
         success: false,
         error: 'Vous devez être connecté pour comparer des programmes'
@@ -190,70 +326,85 @@ export async function comparePrograms(
     await connectToDatabase();
     console.log('✅ MongoDB connecté');
 
-    // 🔴 SUPPRESSION de la vérification des IDs (elle est faite dans handleComparePrograms maintenant)
-    console.log('✅ IDs reçus - P1:', program1Data.supabaseId, 'P2:', program2Data.supabaseId);
-
-    // 4. Calculer les métriques RÉELLES
+    // 3. Calculer les métriques RÉELLES
     console.log('📊 Calcul des métriques...');
-    console.log('Programme 1 jours:', program1Data.programme.length);
-    console.log('Programme 2 jours:', program2Data.programme.length);
-    
     const program1Metrics = calculateMetrics(program1Data.programme, program1Data.budget);
     const program2Metrics = calculateMetrics(program2Data.programme, program2Data.budget);
     
-    console.log('✅ Métriques calculées');
-    console.log('P1 coût total:', program1Metrics.totalCost.numericValue);
-    console.log('P2 coût total:', program2Metrics.totalCost.numericValue);
-    
     determineWinners(program1Metrics, program2Metrics);
-    console.log('✅ Winners déterminés');
 
-    // 5. Extraire les catégories RÉELLES
+    // 4. Extraire les catégories RÉELLES
     console.log('🏷️ Extraction des catégories...');
     const program1Categories = extractCategories(program1Data.programme);
     const program2Categories = extractCategories(program2Data.programme);
-    console.log('✅ Catégories extraites');
-    console.log('P1 categories:', program1Categories);
-    console.log('P2 categories:', program2Categories);
 
-    // 6. 🔴 CORRECTION: Structure compatible avec le modèle MongoDB
+    // 5. 🔴 NOUVEAU : Générer la recommandation intelligente
+    console.log('🤖 Génération de la recommandation...');
+    const smartRecommendation = generateSmartRecommendation(
+      program1Metrics,
+      program2Metrics,
+      program1Categories,
+      program2Categories,
+      program1Data.budget,
+      program1Data.type
+    );
+    console.log('✅ Recommandation générée:', smartRecommendation.conclusion);
+
+    // 6. Préparer les données pour MongoDB
+    const programs = [
+      {
+        id: program1Data.supabaseId,
+        name: `${program1Data.destination} - Programme 1`,
+        image: '/assets/images/default-trip.jpg',
+        totalCost: program1Metrics.totalCost.numericValue,
+        numberOfDays: program1Metrics.numberOfDays.numericValue,
+        rawData: program1Data.programme,
+        metrics: program1Metrics,
+        categories: program1Categories
+      },
+      {
+        id: program2Data.supabaseId,
+        name: `${program2Data.destination} - Programme 2`,
+        image: '/assets/images/default-trip.jpg',
+        totalCost: program2Metrics.totalCost.numericValue,
+        numberOfDays: program2Metrics.numberOfDays.numericValue,
+        rawData: program2Data.programme,
+        metrics: program2Metrics,
+        categories: program2Categories
+      }
+    ];
+
+    // 6. Préparer les données pour MongoDB
     const comparisonData = {
       programIds: [program1Data.supabaseId, program2Data.supabaseId],
       userId: userId,
       destination: program1Data.destination,
-      programMetrics: [
-        {
-          programId: program1Data.supabaseId,
-          metrics: program1Metrics,
-          categories: program1Categories
-        },
-        {
-          programId: program2Data.supabaseId,
-          metrics: program2Metrics,
-          categories: program2Categories
-        }
-      ]
+      programs: programs,  // ✅ Utiliser "programs"
+      recommendation: smartRecommendation
     };
 
-    console.log('📝 Données de comparaison prêtes');
-    console.log('Structure:', JSON.stringify(comparisonData, null, 2));
+    console.log('📝 Structure de sauvegarde:', {
+      hasPrograms: !!comparisonData.programs,
+      programsLength: comparisonData.programs.length,
+      hasRecommendation: !!comparisonData.recommendation
+    });
 
     // 7. SAUVEGARDER dans MongoDB
     console.log('💾 Sauvegarde dans MongoDB...');
     const comparison = await Comparison.create(comparisonData);
     
-    console.log('✅ Comparaison créée avec succès dans MongoDB!');
-    console.log('📝 ID de la comparaison:', comparison._id.toString());
+    console.log('✅ Comparaison créée avec succès!');
+    console.log('📝 ID:', comparison._id.toString());
 
     return {
       success: true,
       comparisonId: comparison._id.toString(),
-      message: 'Comparaison créée avec succès'
+      message: 'Comparaison créée avec succès',
+      recommendation: smartRecommendation // 🔴 Retourner aussi la recommandation
     };
 
   } catch (error: any) {
-    console.error('❌ ERREUR COMPLÈTE dans comparePrograms:', error);
-    console.error('❌ Stack:', error.stack);
+    console.error('❌ ERREUR dans comparePrograms:', error);
     return {
       success: false,
       error: error.message || 'Erreur lors de la comparaison des programmes'
