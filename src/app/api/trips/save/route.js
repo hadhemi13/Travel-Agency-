@@ -59,6 +59,10 @@ const savedProgram = await prisma.programmesVoyage.create({
     endDate: new Date(endDate),
     voyageurs: parseInt(voyageurs) || 1,
     programme: programme,
+    categoriesActivites: programme.map(day => day.categorieActivites || {}),
+tempsEstime: programme.map(day => day.tempsEstime || {}),
+distancesKm: programme.map(day => day.distanceKm || 0),
+hotelInfo: programme[0]?.hotel || null, 
   }
 });
 
