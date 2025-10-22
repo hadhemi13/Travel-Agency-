@@ -59,7 +59,7 @@ export async function GET() {
     }
 }
 
-// POST - Sauvegarder un programme en favori
+// POST - Toggle favori (ajouter/supprimer)
 export async function POST(request) {
     try {
         const session = await getServerSession(authOptions);
@@ -70,16 +70,13 @@ export async function POST(request) {
 
         const { 
             programmeId, 
-            originalProgrammeId,
-            title,
-            destinationName,
-            type,
-            budget,
-            startDate,
-            endDate,
-            voyageurs,
-            programme
+            isFavorite,
+            programmeData
         } = await request.json();
+
+        if (!programmeId) {
+            return NextResponse.json({ error: 'ID du programme requis' }, { status: 400 });
+        }
 
         // Vérifier si le programme est déjà sauvegardé
         const existingSaved = await prisma.savedProgramme.findFirst({
@@ -89,44 +86,79 @@ export async function POST(request) {
             }
         });
 
-        if (existingSaved) {
+        if (isFavorite) {
+            // Ajouter aux favoris
+            if (existingSaved) {
+                return NextResponse.json({ 
+                    success: true,
+                    message: 'Programme déjà en favori',
+                    alreadySaved: true
+                });
+            }
+
+            if (!programmeData) {
+                return NextResponse.json({ error: 'Données du programme requises' }, { status: 400 });
+            }
+
+            // Créer le programme sauvegardé
+            const savedProgramme = await prisma.savedProgramme.create({
+                data: {
+                    userId: session.user.id,
+                    programmeId: programmeId,
+                    originalProgrammeId: programmeData.originalProgrammeId || null,
+                    title: programmeData.title,
+                    destinationName: programmeData.destinationName,
+                    type: programmeData.type,
+                    budget: programmeData.budget,
+                    startDate: new Date(programmeData.startDate),
+                    endDate: new Date(programmeData.endDate),
+                    voyageurs: programmeData.voyageurs,
+                    programme: programmeData.programme || {}
+                }
+            });
+
+            console.log(`✅ Programme ajouté aux favoris: ${savedProgramme.id}`);
+
             return NextResponse.json({ 
-                error: 'Ce programme est déjà en favori',
-                alreadySaved: true
-            }, { status: 409 });
+                success: true,
+                message: 'Programme ajouté aux favoris',
+                savedProgramme: {
+                    id: savedProgramme.id,
+                    programmeId: savedProgramme.programmeId,
+                    title: savedProgramme.title
+                }
+            });
+
+        } else {
+            // Supprimer des favoris
+            if (!existingSaved) {
+                return NextResponse.json({ 
+                    success: true,
+                    message: 'Programme déjà supprimé des favoris'
+                });
+            }
+
+            const deletedProgramme = await prisma.savedProgramme.deleteMany({
+                where: {
+                    userId: session.user.id,
+                    programmeId: programmeId
+                }
+            });
+
+            console.log(`✅ Programme supprimé des favoris: ${programmeId}`);
+
+            return NextResponse.json({ 
+                success: true,
+                message: 'Programme supprimé des favoris'
+            });
         }
 
-        // Créer le programme sauvegardé
-        const savedProgramme = await prisma.savedProgramme.create({
-            data: {
-                userId: session.user.id,
-                programmeId: programmeId,
-                originalProgrammeId: originalProgrammeId,
-                title: title,
-                destinationName: destinationName,
-                type: type,
-                budget: budget,
-                startDate: new Date(startDate),
-                endDate: new Date(endDate),
-                voyageurs: voyageurs,
-                programme: programme
-            }
-        });
-
-        console.log(`✅ Programme ajouté aux favoris: ${savedProgramme.id}`);
-
-        return NextResponse.json({ 
-            success: true,
-            savedProgramme: {
-                id: savedProgramme.id,
-                programmeId: savedProgramme.programmeId,
-                title: savedProgramme.title
-            }
-        });
-
     } catch (error) {
-        console.error('❌ Erreur ajout favori:', error);
-        return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+        console.error('❌ Erreur toggle favori:', error);
+        return NextResponse.json({ 
+            error: 'Erreur serveur', 
+            details: error.message 
+        }, { status: 500 });
     }
 }
 

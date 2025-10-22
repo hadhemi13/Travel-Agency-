@@ -333,6 +333,7 @@ interface HotelDetails {
 export default function HotelDetail() {
   const { id } = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [hotel, setHotel] = useState<HotelDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -414,9 +415,6 @@ export default function HotelDetail() {
   const roomDetails = hotel.rooms || {};
 
 
-  const router = useRouter();
-
-
   const handleReservation = () => {
     // Stocker les données complètes de l'hôtel dans sessionStorage
     const reservationData = {
@@ -472,7 +470,7 @@ export default function HotelDetail() {
     sessionStorage.setItem('reservationData', JSON.stringify(reservationData));
 
     router.push(
-        `/reservation?hotelId=${id}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&rooms=${rooms}`
+      `/reservation?hotelId=${id}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&rooms=${rooms}`
     );
   };
 

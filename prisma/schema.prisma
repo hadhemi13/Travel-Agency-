@@ -388,6 +388,10 @@ model ProgrammesVoyage {
   programme       Json        @db.JsonB
   isDone          Boolean     @default(false) @map("is_done")
   createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  categoriesActivites Json?       @map("categories_activites") @db.JsonB
+  tempsEstime        Json?       @map("temps_estime") @db.JsonB
+  distancesKm        Json?       @map("distances_km") @db.JsonB
+  hotelInfo          Json?       @map("hotel_info") @db.JsonB
 
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   savedProgrammes SavedProgramme[] @relation("OriginalProgramme")

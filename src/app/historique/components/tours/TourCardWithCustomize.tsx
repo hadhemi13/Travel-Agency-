@@ -9,16 +9,23 @@ interface TourCardWithCustomizeProps {
     tour: TourHistoryType
     onDelete?: (tourId: string) => void
     onCustomize?: (customizedProgramme: any) => void
+    onFavoriteChange?: (programmeId: string, isFavorite: boolean) => void
 }
 
-const TourCardWithCustomize = ({ tour, onDelete, onCustomize }: TourCardWithCustomizeProps) => {
+const TourCardWithCustomize = ({ tour, onDelete, onCustomize, onFavoriteChange }: TourCardWithCustomizeProps) => {
     const [showActions, setShowActions] = useState(false)
 
     const handleDelete = async () => {
         if (!confirm('Êtes-vous sûr de vouloir supprimer ce programme des favoris ?')) return
 
+        const programmeId = tour.originalId || tour.programmeId
+        if (!programmeId) {
+            alert('❌ Impossible de supprimer : ID du programme manquant')
+            return
+        }
+
         try {
-            const response = await fetch(`/api/saved-programmes/${tour.originalId || tour.programmeId}`, {
+            const response = await fetch(`/api/saved-programmes/${programmeId}`, {
                 method: 'DELETE'
             })
 
@@ -28,7 +35,7 @@ const TourCardWithCustomize = ({ tour, onDelete, onCustomize }: TourCardWithCust
             }
 
             if (onDelete) {
-                onDelete(tour.originalId || tour.programmeId)
+                onDelete(programmeId)
             }
             alert('✅ Programme supprimé des favoris')
         } catch (err: any) {
@@ -39,13 +46,13 @@ const TourCardWithCustomize = ({ tour, onDelete, onCustomize }: TourCardWithCust
 
     return (
         <div className="relative group">
-            <TourCard tour={tour} />
+            <TourCard tour={tour} onFavoriteChange={onFavoriteChange} />
 
             {/* Actions overlay */}
             <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 {/* Bouton Personnaliser */}
                 <CustomizeButton
-                    programmeId={tour.originalId || tour.programmeId}
+                    programmeId={tour.originalId || tour.programmeId || ''}
                     programmeName={tour.name}
                     onCustomize={onCustomize}
                     className="text-xs"

@@ -23,6 +23,12 @@ const nextConfig: NextConfig = {
         hostname: 'picsum.photos',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cf.bstatic.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

@@ -216,9 +216,16 @@ const SavedHotelList = ({ filters, onCountsUpdate }: { filters: FilterState, onC
         }
     }
 
-    const handleEditHotel = async (updatedHotel: SavedHotelType) => {
+    const handleEditHotel = async (updatedHotel: SavedHotelType): Promise<void> => {
         try {
-            console.log('Modification de l\'hôtel:', updatedHotel)
+            console.log('🔧 Modification de l\'hôtel:', updatedHotel)
+            console.log('📋 Données envoyées à l\'API:', {
+                id: updatedHotel.id,
+                hotel_id: updatedHotel.hotel_id,
+                checkIn: updatedHotel.checkIn,
+                checkOut: updatedHotel.checkOut,
+                originalHotelId: updatedHotel.originalHotelId
+            })
 
             const response = await fetch('/api/hotels/save', {
                 method: 'PUT',
@@ -228,27 +235,39 @@ const SavedHotelList = ({ filters, onCountsUpdate }: { filters: FilterState, onC
                 body: JSON.stringify(updatedHotel)
             })
 
+            console.log('📡 Réponse de l\'API:', response.status, response.statusText)
+
             if (!response.ok) {
                 const errorData = await response.json()
-                throw new Error(errorData.error || 'Erreur lors de la modification de l\'hôtel')
+                console.error('❌ Erreur API:', errorData)
+                throw new Error(errorData.error || errorData.details || 'Erreur lors de la modification de l\'hôtel')
             }
 
             const result = await response.json()
-            console.log('Modification réussie:', result.message)
+            console.log('✅ Modification réussie:', result.message)
 
             // Mettre à jour la liste localement
             setHotels(prev => prev.map(hotel =>
                 hotel.id === updatedHotel.id ? updatedHotel : hotel
             ))
 
-            // Message de succès silencieux - pas besoin d'alert
-            console.log('Hôtel modifié avec succès !')
+            // Message de succès
+            console.log('🎉 Hôtel modifié avec succès !')
         } catch (err) {
-            console.error('Erreur lors de la modification:', err)
-            const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la modification de l\'hôtel'
+            console.error('💥 Erreur lors de la modification:', err)
+            let errorMessage = 'Erreur lors de la modification de l\'hôtel'
+
+            if (err instanceof Error) {
+                errorMessage = err.message
+                console.error('📝 Message d\'erreur:', err.message)
+                console.error('📚 Stack trace:', err.stack)
+            } else if (err && typeof err === 'object' && 'details' in err && typeof err.details === 'string') {
+                errorMessage = err.details
+            }
+
             setError(errorMessage)
-            // Afficher l'erreur dans la console pour le débogage
-            console.error('Erreur détaillée:', errorMessage)
+            console.error('🚨 Erreur détaillée:', errorMessage)
+            throw err // Re-throw pour que le composant HotelCard puisse gérer l'erreur
         }
     }
 
@@ -371,7 +390,7 @@ const SavedHotelList = ({ filters, onCountsUpdate }: { filters: FilterState, onC
                         <div key={hotel.id} className="transform hover:scale-105 transition-all duration-300">
                             <HotelCard
                                 hotel={hotel}
-                                onRemove={() => handleRemoveHotel(hotel.hotel_id)}
+                                onRemove={handleRemoveHotel}
                                 onDuplicate={handleDuplicateHotel}
                                 onEdit={handleEditHotel}
                                 allHotels={hotels}

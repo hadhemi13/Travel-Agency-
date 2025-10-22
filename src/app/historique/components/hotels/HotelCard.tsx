@@ -1,5 +1,4 @@
 'use client'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { FaCalendarAlt, FaStar, FaMapMarkerAlt, FaCopy, FaEdit, FaShare, FaCheck, FaTimes } from 'react-icons/fa'
@@ -9,7 +8,7 @@ import ShareModal from './ShareModal'
 
 interface HotelCardProps {
     hotel: SavedHotelType
-    onRemove?: () => void
+    onRemove?: (hotelId: string) => void
     onDuplicate?: (hotel: SavedHotelType) => void
     onEdit?: (hotel: SavedHotelType) => void
     allHotels?: SavedHotelType[] // Liste de tous les hôtels pour trouver l'original
@@ -20,6 +19,7 @@ const HotelCard = ({ hotel, onRemove, onDuplicate, onEdit, allHotels = [] }: Hot
     const [showActions, setShowActions] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
     const [showShareModal, setShowShareModal] = useState(false)
+    const [editError, setEditError] = useState<string | null>(null)
     const [editData, setEditData] = useState({
         checkIn: checkIn || '',
         checkOut: checkOut || ''
@@ -114,15 +114,25 @@ const HotelCard = ({ hotel, onRemove, onDuplicate, onEdit, allHotels = [] }: Hot
         setIsEditing(true)
     }
 
-    const handleSaveEdit = () => {
+    const handleSaveEdit = async () => {
         if (onEdit) {
+            setEditError(null) // Réinitialiser l'erreur
             const updatedHotel = {
                 ...hotel,
-                ...editData
+                checkIn: editData.checkIn,
+                checkOut: editData.checkOut
             }
-            onEdit(updatedHotel)
+            try {
+                await onEdit(updatedHotel)
+                setIsEditing(false)
+                setEditError(null)
+                console.log('Dates modifiées avec succès')
+            } catch (error) {
+                console.error('Erreur lors de la modification des dates:', error)
+                const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la modification des dates'
+                setEditError(errorMessage)
+            }
         }
-        setIsEditing(false)
     }
 
     const handleCancelEdit = () => {
@@ -131,6 +141,7 @@ const HotelCard = ({ hotel, onRemove, onDuplicate, onEdit, allHotels = [] }: Hot
             checkOut: checkOut || ''
         })
         setIsEditing(false)
+        setEditError(null)
     }
 
     const handleShare = () => {
@@ -150,12 +161,13 @@ const HotelCard = ({ hotel, onRemove, onDuplicate, onEdit, allHotels = [] }: Hot
         <div className="group bg-white dark:bg-[#2a2c31] rounded-2xl shadow-xl hover:shadow-2xl dark:shadow-[0_1rem_3rem_rgba(0,0,0,0.7)] transition-all duration-500 overflow-hidden h-full flex flex-col hover:-translate-y-3 hover:scale-[1.02]">
             {/* Image with Overlay */}
             <div className="relative overflow-hidden h-96">
-                <Image
+                <img
                     src={image}
                     alt={name}
-                    width={500}
-                    height={400}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    onError={(e) => {
+                        e.currentTarget.src = "https://via.placeholder.com/400x300?text=No+Image";
+                    }}
                 />
 
                 {/* Gradient Overlay */}
@@ -174,7 +186,7 @@ const HotelCard = ({ hotel, onRemove, onDuplicate, onEdit, allHotels = [] }: Hot
                                 <span className="font-bold text-lg ml-2">{rating}</span>
                             </div>
                             <span className="text-sm text-gray-600">({reviewCount} reviews)</span>
-                            {hotel.id.startsWith('duplicate_') && (
+                            {(hotel.id.startsWith('duplicate_') || hotel.hotel_id.startsWith('duplicate_')) && (
                                 <span className="ml-auto px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
                                     Copie
                                 </span>
@@ -186,6 +198,15 @@ const HotelCard = ({ hotel, onRemove, onDuplicate, onEdit, allHotels = [] }: Hot
 
             {/* Card Body */}
             <div className="px-6 py-6 flex-1 flex flex-col">
+                {/* Badge Copie pour les hôtels dupliqués */}
+                {(hotel.id.startsWith('duplicate_') || hotel.hotel_id.startsWith('duplicate_')) && (
+                    <div className="mb-3">
+                        <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm rounded-full font-medium">
+                            📋 Copie
+                        </span>
+                    </div>
+                )}
+
                 <div className="space-y-3 mb-4">
                     <div className="flex items-center text-gray-600 dark:text-[#b0b0b8]">
                         <svg className="w-5 h-5 mr-3 text-[#8e85e6]" fill="currentColor" viewBox="0 0 20 20">
@@ -259,7 +280,7 @@ const HotelCard = ({ hotel, onRemove, onDuplicate, onEdit, allHotels = [] }: Hot
                             </button>
 
                             <button
-                                onClick={onRemove}
+                                onClick={() => onRemove && onRemove(hotel.hotel_id)}
                                 className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-all duration-300"
                                 title="Supprimer"
                             >
@@ -273,6 +294,23 @@ const HotelCard = ({ hotel, onRemove, onDuplicate, onEdit, allHotels = [] }: Hot
                 {isEditing && hotel.hotel_id.startsWith('duplicate_') && (
                     <div className="mt-4 p-4 bg-gray-50 dark:bg-[#3a3c41] rounded-lg border border-gray-200 dark:border-gray-600">
                         <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Modifier les dates de séjour</h4>
+
+                        {/* Affichage des erreurs */}
+                        {editError && (
+                            <div className="mb-3 p-3 bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-300 rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <span className="font-medium">Erreur:</span>
+                                    <button
+                                        onClick={() => setEditError(null)}
+                                        className="text-red-500 hover:text-red-700 dark:text-red-300 dark:hover:text-red-100 font-bold"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                                <p className="mt-1 text-sm">{editError}</p>
+                            </div>
+                        )}
+
                         <div className="space-y-3">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>

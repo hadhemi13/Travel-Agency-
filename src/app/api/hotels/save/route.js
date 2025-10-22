@@ -192,27 +192,42 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Hôtel non trouvé ou non autorisé' }, { status: 404 });
     }
 
+    // Préparer les données de mise à jour
+    const updateData = {
+      name: name || existingHotel.name,
+      address: address || existingHotel.address,
+      rating: rating !== undefined ? parseFloat(rating) : existingHotel.rating,
+      reviewCount: reviewCount !== undefined ? parseInt(reviewCount) : existingHotel.reviewCount,
+      price: price !== undefined ? parseFloat(price) : existingHotel.price,
+      currency: currency || existingHotel.currency,
+      image: image || existingHotel.image,
+      amenities: amenities ? JSON.stringify(amenities) : existingHotel.amenities,
+      description: description !== undefined ? description : existingHotel.description,
+      adults: adults || existingHotel.adults,
+      rooms: rooms || existingHotel.rooms
+    };
+
+    // Gestion des dates
+    if (checkIn && checkIn !== existingHotel.checkIn?.toISOString().split('T')[0]) {
+      updateData.checkIn = new Date(checkIn);
+    }
+    if (checkOut && checkOut !== existingHotel.checkOut?.toISOString().split('T')[0]) {
+      updateData.checkOut = new Date(checkOut);
+    }
+
+    // Gestion de originalHotelId
+    if (originalHotelId !== undefined) {
+      updateData.originalHotelId = originalHotelId;
+    }
+
+    console.log('Données de mise à jour:', updateData);
+
     // Mettre à jour l'hôtel sauvegardé
     const updatedHotel = await prisma.savedHotel.update({
       where: {
         id: id
       },
-      data: {
-        name: name || existingHotel.name,
-        address: address || existingHotel.address,
-        rating: rating !== undefined ? parseFloat(rating) : existingHotel.rating,
-        reviewCount: reviewCount !== undefined ? parseInt(reviewCount) : existingHotel.reviewCount,
-        price: price !== undefined ? parseFloat(price) : existingHotel.price,
-        currency: currency || existingHotel.currency,
-        image: image || existingHotel.image,
-        amenities: amenities ? JSON.stringify(amenities) : existingHotel.amenities,
-        description: description !== undefined ? description : existingHotel.description,
-        checkIn: checkIn ? new Date(checkIn) : existingHotel.checkIn,
-        checkOut: checkOut ? new Date(checkOut) : existingHotel.checkOut,
-        adults: adults || existingHotel.adults,
-        rooms: rooms || existingHotel.rooms,
-        ...(originalHotelId && { originalHotelId })
-      }
+      data: updateData
     });
 
     return NextResponse.json({ 
@@ -222,8 +237,16 @@ export async function PUT(request) {
 
   } catch (error) {
     console.error('Erreur lors de la modification de l\'hôtel:', error);
+    console.error('Détails de l\'erreur:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     return NextResponse.json(
-      { error: 'Erreur lors de la modification de l\'hôtel' },
+      { 
+        error: 'Erreur lors de la modification de l\'hôtel',
+        details: error.message 
+      },
       { status: 500 }
     );
   }

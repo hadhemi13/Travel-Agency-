@@ -21,7 +21,12 @@ const generateSimpleUUID = () => {
     });
 }
 
-const TourCard = ({ tour }: { tour: TourHistoryType }) => {
+interface TourCardProps {
+    tour: TourHistoryType
+    onFavoriteChange?: (programmeId: string, isFavorite: boolean) => void
+}
+
+const TourCard = ({ tour, onFavoriteChange }: TourCardProps) => {
     const { benefits, travelDate, bookingDate, days, name, nights, price, type, status, image, bookingReference } = tour
     const [isFavorite, setIsFavorite] = useState(false)
     const [isFavoriteUpdating, setIsFavoriteUpdating] = useState(false)
@@ -87,10 +92,16 @@ const TourCard = ({ tour }: { tour: TourHistoryType }) => {
 
             if (response.ok) {
                 setIsFavorite(newFavoriteStatus)
+
+                // Notifier le parent du changement
+                if (onFavoriteChange) {
+                    onFavoriteChange(programmeId, newFavoriteStatus)
+                }
             } else {
                 const errorData = await response.json()
-                console.error('❌ Erreur lors de la mise à jour des favoris:', errorData.error)
-                alert(`Erreur: ${errorData.error || 'Impossible de mettre à jour les favoris'}`)
+                console.error('❌ Erreur lors de la mise à jour des favoris:', errorData)
+                const errorMessage = errorData.details || errorData.error || 'Impossible de mettre à jour les favoris'
+                alert(`Erreur: ${errorMessage}`)
             }
         } catch (error) {
             console.error('❌ Erreur réseau:', error)

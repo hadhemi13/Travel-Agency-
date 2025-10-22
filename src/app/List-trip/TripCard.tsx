@@ -110,9 +110,10 @@ const TripCard = ({ place, programmeId, onStatusChange, onFavoriteChange }: Trip
                 console.log('✅ Favori mis à jour avec succès:', data);
             } else {
                 const errorData = await response.json();
-                console.error('❌ Erreur lors de la mise à jour des favoris:', errorData.error || 'Erreur inconnue');
-                // Optionnel: afficher une notification à l'utilisateur
-                alert(`Erreur: ${errorData.error || 'Impossible de mettre à jour les favoris'}`);
+                console.error('❌ Erreur lors de la mise à jour des favoris:', errorData);
+                // Afficher un message d'erreur plus informatif
+                const errorMessage = errorData.details || errorData.error || 'Impossible de mettre à jour les favoris';
+                alert(`Erreur: ${errorMessage}`);
             }
         } catch (error) {
             console.error('❌ Erreur réseau:', error);

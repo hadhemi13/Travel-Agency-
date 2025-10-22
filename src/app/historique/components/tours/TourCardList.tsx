@@ -94,6 +94,26 @@ const TourCardList = ({ showFavorites = false, onFavoriteChange, filters }: Tour
         fetchFavorites();
     };
 
+    const handleFavoriteToggle = (programmeId: string, isFavorite: boolean) => {
+        console.log('❤️ handleFavoriteToggle appelé avec:', programmeId, isFavorite)
+        console.log('📋 Favoris actuels:', favorites.map(f => ({ id: f.id, programmeId: f.programmeId })))
+
+        // Si le favori est retiré (isFavorite = false), supprimer de la liste
+        if (!isFavorite) {
+            console.log('🗑️ Suppression du favori de la liste locale')
+            setFavorites(prev => {
+                const filtered = prev.filter(fav => fav.id !== programmeId && fav.programmeId !== programmeId)
+                console.log('📋 Favoris après suppression:', filtered.map(f => ({ id: f.id, programmeId: f.programmeId })))
+                return filtered
+            })
+
+            // Notifier le parent du changement
+            if (onFavoriteChange) {
+                onFavoriteChange();
+            }
+        }
+    };
+
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('fr-FR', {
             day: '2-digit',
@@ -295,9 +315,14 @@ const TourCardList = ({ showFavorites = false, onFavoriteChange, filters }: Tour
                                 tour={tour}
                                 onDelete={() => fetchFavorites()}
                                 onCustomize={handleCustomize}
+                                onFavoriteChange={handleFavoriteToggle}
                             />
                         ) : (
-                            <TourCard key={tour.id} tour={tour} />
+                            <TourCard
+                                key={tour.id}
+                                tour={tour}
+                                onFavoriteChange={showFavorites ? handleFavoriteToggle : undefined}
+                            />
                         )
                     ))}
                 </div>

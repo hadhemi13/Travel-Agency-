@@ -51,76 +51,78 @@ export default function HotelSearchPage() {
   const rooms = parseInt(searchParams.get("rooms") || "1", 10);
 
   const fetchHotels = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  try {
+    setLoading(true);
+    setError(null);
 
-      if (!location || !checkIn || !checkOut) {
-        setError("Missing required search parameters.");
-        setLoading(false);
-        return;
-      }
-
-      const correctedLocation = location === "Amesterdam" ? "Amsterdam" : location;
-      const params = new URLSearchParams({
-        location: correctedLocation,
-        checkIn,
-        checkOut,
-        adults: adults.toString(),
-        rooms: rooms.toString(),
-      });
-      console.log("Fetching hotels with params:", { location: correctedLocation, checkIn, checkOut, adults, rooms });
-      const response = await fetch(`/api/hotels/search?${params}`);
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} - ${await response.text()}`);
-      }
-
-      const data: any = await response.json();
-      console.log("Raw API Response:", JSON.stringify(data, null, 2));  // Detailed logging of full response
-
-      const rawHotels = data.hotels || data.result || data.data?.hotels || [];
-      if (!rawHotels || rawHotels.length === 0) {
-        console.log("No hotels found in response.");
-        setHotels([]);
-        setLoading(false);
-        return;
-      }
-
-      const hotelsMapped: Hotel[] = rawHotels.slice(0, HOTEL_LIMIT).map((h: any, index: number) => {
-        const property = h.property || h;
-        const priceBreakdown = property.priceBreakdown || property.price_breakdown || {};
-        const grossPrice = priceBreakdown.grossPrice || priceBreakdown.gross_price || {};
-
-        // Enhanced image extraction with focus on photoUrls
-        const imageUrl = property.photoUrls?.[0] || 
-                        (property.mainPhotoId ? `https://cf.bstatic.com/xdata/images/hotel/max1024x768/${property.mainPhotoId}.jpg` : 
-                        "https://via.placeholder.com/400x300?text=No+Image");
-        
-        const priceValue = grossPrice.value || grossPrice.amount || property.price || undefined;
-
-        console.log(`Mapping hotel ${index + 1}: ${property.name || h.hotel_name} - imageUrl: ${imageUrl}, price: ${priceValue}`);
-
-        return {
-          hotel_id: (h.hotel_id || property.hotel_id || "").toString(),
-          hotel_name: property.name || h.hotel_name || "Unknown Hotel",
-          address: property.address || property.wishlistName || h.address || "Address N/A",
-          image: imageUrl,
-          price: priceValue,
-          currency: grossPrice.currency || property.currency || "USD",
-          review_score: property.reviewScore || h.review_score || undefined,
-        };
-      });
-
-      console.log("Mapped Hotels for Grid:", JSON.stringify(hotelsMapped, null, 2));  // Detailed logging of mapped data
-      setHotels(hotelsMapped);
-    } catch (err: any) {
-      console.error("Fetch Error:", err);
-      setError(`Unable to load hotels: ${err.message || "Please try again later."}`);
-    } finally {
+    if (!location || !checkIn || !checkOut) {
+      setError("Missing required search parameters.");
       setLoading(false);
+      return;
     }
-  }, [location, checkIn, checkOut, adults, rooms]);
+
+    const correctedLocation = location === "Amesterdam" ? "Amsterdam" : location;
+    const params = new URLSearchParams({
+      location: correctedLocation,
+      checkIn,
+      checkOut,
+      adults: adults.toString(),
+      rooms: rooms.toString(),
+    });
+   
+    console.log("🔍 Fetching hotels with params:", { location: correctedLocation, checkIn, checkOut, adults, rooms });
+   
+    const response = await fetch(`/api/hotels/search?${params}`);
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} - ${await response.text()}`);
+    }
+
+    const data: any = await response.json();
+    console.log("🔍 Raw API Response:", data);
+
+    const rawHotels = data.hotels || [];
+   
+    if (!rawHotels || rawHotels.length === 0) {
+      console.log("❌ No hotels found in response.");
+      setHotels([]);
+      setLoading(false);
+      return;
+    }
+
+    console.log(`📥 Received ${rawHotels.length} hotels from API`);
+    console.log("🔍 First raw hotel:", rawHotels[0]);
+
+    const hotelsMapped: Hotel[] = rawHotels.slice(0, HOTEL_LIMIT).map((h: any, index: number) => {
+      // The API already returns transformed data with correct structure
+      const hotel: Hotel = {
+        hotel_id: h.hotel_id || "",
+        hotel_name: h.hotel_name || "Unknown Hotel",
+        address: h.address || "Address N/A",
+        image: h.image || "https://via.placeholder.com/400x300?text=No+Image",
+        price: h.price,
+        currency: h.currency || "USD",
+        review_score: h.review_score,
+      };
+
+      console.log(`✅ Hotel ${index + 1}: ${hotel.hotel_name}`);
+      console.log(`   - Image: ${hotel.image}`);
+      console.log(`   - Price: ${hotel.price} ${hotel.currency}`);
+
+      return hotel;
+    });
+
+    console.log(`✅ Successfully mapped ${hotelsMapped.length} hotels`);
+    console.log("🔍 First mapped hotel:", hotelsMapped[0]);
+   
+    setHotels(hotelsMapped);
+  } catch (err: any) {
+    console.error("❌ Fetch Error:", err);
+    setError(`Unable to load hotels: ${err.message || "Please try again later."}`);
+  } finally {
+    setLoading(false);
+  }
+}, [location, checkIn, checkOut, adults, rooms]);
 
   const debouncedFetchHotels = useCallback(debounce(fetchHotels, 300), [fetchHotels]);
 
