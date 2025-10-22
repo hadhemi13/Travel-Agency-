@@ -71,7 +71,14 @@ export default function Hero() {
           {/* Right Side - Image */}
           <div className="relative">
             <div className="relative rounded-3xl overflow-hidden">
-              <div className="aspect-[4/3] bg-gradient-to-br from-[#8e85e6]/20 to-[#7a6deb]/20 rounded-3xl" />
+              <Image
+                src="/assets/images/category/tour/02.jpg"
+                alt="Travel destination"
+                width={600}
+                height={450}
+                className="w-full h-full object-cover rounded-3xl"
+                priority
+              />
             </div>
 
             {/* 24/7 Support Badge */}

@@ -112,13 +112,7 @@ const TopNavBar = () => {
 
                     {/* Navigation principale (Desktop) - au centre avec espacement */}
                     <div className="hidden lg:flex items-center justify-center flex-1 gap-1.5 ml-4">
-                        <Link
-                            href="/comparateur"
-                            className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group ${pathname === '/comparateur' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
-                        >
-                            <span className="relative z-10">Comparateur</span>
-                            {pathname === '/comparateur' && <span className="absolute inset-0 bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] rounded-lg opacity-80"></span>}
-                        </Link>
+
 
                         {/* Espacement entre Comparateur et le reste */}
                         <div className="w-2"></div>
@@ -175,7 +169,7 @@ const TopNavBar = () => {
                             <span className="relative z-10">Profile</span>
                             {pathname === '/user-profile/profile' && <span className="absolute inset-0 bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] rounded-lg opacity-80"></span>}
                         </Link>
-                        
+
                         <Link
                             href="/generate-trip"
                             className={`relative px-4 py-2.5 text-[15px] font-medium transition-all duration-300 rounded-lg group ${pathname === '/generate-trip' ? 'text-white bg-[#8e85e6] shadow-lg shadow-[#8e85e6]/30' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}

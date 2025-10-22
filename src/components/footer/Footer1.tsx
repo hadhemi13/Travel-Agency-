@@ -12,7 +12,7 @@ import Link from "next/link";
 import { BsEnvelope, BsTelephone } from "react-icons/bs";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaTwitter } from "react-icons/fa6";
 
-const Footer1 = () => {
+const Footer1 = () => { 
   return (
     <footer className="bg-gray-900 pt-5">
       <div className="max-w-7xl mx-auto px-4">
