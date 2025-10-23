@@ -9,7 +9,11 @@ export async function GET() {
         const session = await getServerSession(authOptions);
         
         if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+            return NextResponse.json({ 
+                success: false,
+                error: 'Non autorisé',
+                favorites: []
+            }, { status: 401 });
         }
 
         // Récupérer les programmes sauvegardés de l'utilisateur
@@ -55,7 +59,12 @@ export async function GET() {
         });
     } catch (error) {
         console.error('❌ Erreur récupération programmes favoris:', error);
-        return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+        return NextResponse.json({ 
+            success: false,
+            error: 'Erreur serveur',
+            favorites: [],
+            details: error.message
+        }, { status: 500 });
     }
 }
 

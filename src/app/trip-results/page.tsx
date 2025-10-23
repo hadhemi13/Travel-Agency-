@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   FaPlane,
   FaCalendarAlt,
@@ -12,8 +12,10 @@ import {
   FaSave,
   FaMagic,
   FaCheck,
+  FaChartBar,
 } from 'react-icons/fa';
 import TopNavBar from '@/components/TopNav/TopNavBar';
+import { comparePrograms } from '@/actions/comparePrograms';
 
 interface TripProgram {
   day: number;
@@ -23,10 +25,15 @@ interface TripProgram {
   places?: string;
   flight?: string;
   cost: number;
+  categorieActivites?: { matin?: string; apresmidi?: string; soir?: string };
+  tempsEstime?: { matin?: number; apresmidi?: number; soir?: number };
+  distanceKm?: number;
+  hotel?: { nom: string; etoiles: number };
 }
 
 export default function TripResults() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [programs, setPrograms] = useState<TripProgram[][]>([]);
   const [loading, setLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -34,6 +41,9 @@ export default function TripResults() {
   const [savedProgram, setSavedProgram] = useState<number | null>(null);
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [programSupabaseIds, setProgramSupabaseIds] = useState<(string | null)[]>([]);
+  const [compareLoading, setCompareLoading] = useState(false);
+  const [compareError, setCompareError] = useState<string | null>(null);
   const [isSavedProgram, setIsSavedProgram] = useState(false);
 
   const destination = searchParams.get('destination') || '';
@@ -100,10 +110,16 @@ export default function TripResults() {
             places: item.lieu || '',
             flight: item.flight || '',
             cost: item.cout || 0,
+            categorieActivites: item.categorieActivites || {},
+            tempsEstime: item.tempsEstime || {},
+            distanceKm: item.distanceKm || 0,
+            hotel: item.hotel || null
           })
         );
 
         setPrograms([formatted]);
+        // Set the Supabase ID for the saved program
+        setProgramSupabaseIds([programmeId]);
       } else {
         console.error('❌ Programme sauvegardé non trouvé');
         // Fallback: générer un programme basique avec les données de l'URL
@@ -146,10 +162,16 @@ export default function TripResults() {
           places: item.lieu || '',
           flight: item.flight || '',
           cost: item.cout || 0,
+          categorieActivites: item.categorieActivites || {},
+          tempsEstime: item.tempsEstime || {},
+          distanceKm: item.distanceKm || 0,
+          hotel: item.hotel || null
         })
       );
 
       setPrograms((prev) => [...prev, formatted]);
+      // Add null for new unsaved program
+      setProgramSupabaseIds((prev) => [...prev, null]);
     } catch (err) {
       console.error('❌ Erreur récupération itinéraire:', err);
     } finally {
@@ -174,8 +196,12 @@ export default function TripResults() {
         apresmidi: day.afternoon || '',
         soir: day.evening || '',
         lieu: day.places || '',
-        repas: '', // You might want to add this to your TripProgram interface
-        cout: day.cost
+        repas: '',
+        cout: day.cost,
+        categorieActivites: day.categorieActivites || {},
+        tempsEstime: day.tempsEstime || {},
+        distanceKm: day.distanceKm || 0,
+        hotel: day.hotel || null
       }));
 
       const response = await fetch('/api/trips/save', {
@@ -202,6 +228,11 @@ export default function TripResults() {
       setSavedProgram(programIndex + 1);
       setShowSaveModal(true);
 
+      // Update Supabase IDs
+      const newIds = [...programSupabaseIds];
+      newIds[programIndex] = data.programId;
+      setProgramSupabaseIds(newIds);
+
     } catch (error: any) {
       console.error('❌ Erreur sauvegarde:', error);
       setSaveError(error.message || 'Erreur lors de l\'enregistrement du programme');
@@ -213,6 +244,185 @@ export default function TripResults() {
   const handleCloseModal = () => {
     setShowSaveModal(false);
     setSaveError(null);
+  };
+
+  const handleComparePrograms = async () => {
+    console.log('🎯 DÉBUT handleComparePrograms');
+    console.log('📊 Nombre de programmes:', programs.length);
+    console.log('🔑 IDs Supabase avant sauvegarde:', programSupabaseIds);
+
+    // Vérifier qu'on a bien 2 programmes
+    if (programs.length < 2) {
+      console.log('❌ Pas assez de programmes');
+      setCompareError("Vous devez générer au moins 2 programmes pour les comparer");
+      return;
+    }
+
+    setCompareLoading(true);
+    setCompareError(null);
+
+    try {
+      // 🔴 ÉTAPE 1: SAUVEGARDER LES PROGRAMMES NON SAUVEGARDÉS
+      const savedIds = [...programSupabaseIds];
+
+      // Sauvegarder le programme 1 si pas encore sauvegardé
+      if (!savedIds[0]) {
+        console.log('💾 Sauvegarde du programme 1...');
+        const formattedProgram1 = programs[0].map((day) => ({
+          day: day.day,
+          matin: day.morning || '',
+          apresmidi: day.afternoon || '',
+          soir: day.evening || '',
+          lieu: day.places || '',
+          repas: '',
+          cout: day.cost,
+          categorieActivites: day.categorieActivites || {},
+          tempsEstime: day.tempsEstime || {},
+          distanceKm: day.distanceKm || 0,
+          hotel: day.hotel || null
+        }));
+
+        const response1 = await fetch('/api/trips/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            destination,
+            type,
+            budget,
+            startDate,
+            endDate,
+            voyageurs,
+            programme: formattedProgram1,
+          }),
+        });
+
+        const data1 = await response1.json();
+        if (!response1.ok) {
+          throw new Error(`Erreur sauvegarde Programme 1: ${data1.error}`);
+        }
+
+        savedIds[0] = data1.programId;
+        console.log('✅ Programme 1 sauvegardé:', savedIds[0]);
+      } else {
+        console.log('✅ Programme 1 déjà sauvegardé:', savedIds[0]);
+      }
+
+      // Sauvegarder le programme 2 si pas encore sauvegardé
+      if (!savedIds[1]) {
+        console.log('💾 Sauvegarde du programme 2...');
+        const formattedProgram2 = programs[1].map((day) => ({
+          day: day.day,
+          matin: day.morning || '',
+          apresmidi: day.afternoon || '',
+          soir: day.evening || '',
+          lieu: day.places || '',
+          repas: '',
+          cout: day.cost,
+          categorieActivites: day.categorieActivites || {},
+          tempsEstime: day.tempsEstime || {},
+          distanceKm: day.distanceKm || 0,
+          hotel: day.hotel || null
+        }));
+
+        const response2 = await fetch('/api/trips/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            destination,
+            type,
+            budget,
+            startDate,
+            endDate,
+            voyageurs,
+            programme: formattedProgram2,
+          }),
+        });
+
+        const data2 = await response2.json();
+        if (!response2.ok) {
+          throw new Error(`Erreur sauvegarde Programme 2: ${data2.error}`);
+        }
+
+        savedIds[1] = data2.programId;
+        console.log('✅ Programme 2 sauvegardé:', savedIds[1]);
+      } else {
+        console.log('✅ Programme 2 déjà sauvegardé:', savedIds[1]);
+      }
+
+      // Mettre à jour l'état avec les nouveaux IDs
+      setProgramSupabaseIds(savedIds);
+
+      console.log('🔑 IDs après sauvegarde:', savedIds);
+
+      // 🔴 ÉTAPE 2: PRÉPARER LES DONNÉES POUR LA COMPARAISON
+      const program1Data = {
+        supabaseId: savedIds[0],
+        destination,
+        type,
+        budget,
+        startDate,
+        endDate,
+        voyageurs,
+        programme: programs[0].map(day => ({
+          day: day.day,
+          matin: day.morning || '',
+          apresmidi: day.afternoon || '',
+          soir: day.evening || '',
+          lieu: day.places || '',
+          repas: '',
+          cout: day.cost,
+          categorieActivites: day.categorieActivites || {},
+          tempsEstime: day.tempsEstime || {},
+          distanceKm: day.distanceKm || 0,
+          hotel: day.hotel || null
+        }))
+      };
+
+      const program2Data = {
+        supabaseId: savedIds[1],
+        destination,
+        type,
+        budget,
+        startDate,
+        endDate,
+        voyageurs,
+        programme: programs[1].map(day => ({
+          day: day.day,
+          matin: day.morning || '',
+          apresmidi: day.afternoon || '',
+          soir: day.evening || '',
+          lieu: day.places || '',
+          repas: '',
+          cout: day.cost,
+          categorieActivites: day.categorieActivites || {},
+          tempsEstime: day.tempsEstime || {},
+          distanceKm: day.distanceKm || 0,
+          hotel: day.hotel || null
+        }))
+      };
+
+      console.log('📦 Données prêtes pour comparaison');
+      console.log('🚀 Appel de comparePrograms...');
+
+      // 🔴 ÉTAPE 3: COMPARER LES PROGRAMMES
+      const result = await comparePrograms(program1Data, program2Data);
+
+      console.log('📨 Résultat comparePrograms:', result);
+
+      if (result.success) {
+        console.log('✅ Comparaison réussie, redirection vers:', `/travel-comparator/${result.comparisonId}`);
+        router.push(`/travel-comparator/${result.comparisonId}`);
+      } else {
+        console.log('❌ Échec comparaison:', result.error);
+        setCompareError(result.error || "Erreur lors de la comparaison");
+      }
+    } catch (error: any) {
+      console.error('❌ EXCEPTION dans handleComparePrograms:', error);
+      console.error('Stack:', error.stack);
+      setCompareError(error.message || "Erreur lors de la comparaison");
+    } finally {
+      setCompareLoading(false);
+    }
   };
 
   return (
@@ -262,12 +472,21 @@ export default function TripResults() {
         </div>
       )}
 
-      {/* Error Message */}
+      {/* Error Messages */}
       {saveError && (
         <div className="max-w-6xl mx-auto px-4 mt-4">
           <div className="bg-red-100 dark:bg-red-900/30 border-2 border-red-400 text-red-700 dark:text-red-300 px-6 py-4 rounded-xl shadow-lg">
             <p className="font-bold text-lg mb-1">⚠️ Erreur</p>
             <p>{saveError}</p>
+          </div>
+        </div>
+      )}
+
+      {compareError && (
+        <div className="max-w-6xl mx-auto px-4 mt-4">
+          <div className="bg-orange-100 dark:bg-orange-900/30 border-2 border-orange-400 text-orange-700 dark:text-orange-300 px-6 py-4 rounded-xl shadow-lg">
+            <p className="font-bold text-lg mb-1">⚠️ Erreur de comparaison</p>
+            <p>{compareError}</p>
           </div>
         </div>
       )}
@@ -374,37 +593,59 @@ export default function TripResults() {
 
               {/* Action Buttons */}
               <div className="flex justify-center gap-4 flex-wrap">
-                {/* Bouton conditionnel selon le contexte */}
+                {/* Save Button - Conditional based on context */}
                 {!isSavedProgram ? (
-                  // Programme généré - bouton de sauvegarde normal
-                  <button
-                    onClick={() => handleSaveProgram(index)}
-                    disabled={saveLoading}
-                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-semibold px-8 py-3 rounded-full shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transition-all duration-300 flex items-center gap-2 transform hover:scale-105"
-                  >
-                    <FaSave className="text-lg" />
-                    {saveLoading
-                      ? 'Enregistrement en cours...'
-                      : `Sauvegarder ce programme`
-                    }
-                  </button>
+                  programSupabaseIds[index] ? (
+                    // Already saved
+                    <div className="bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg shadow-green-500/30 flex items-center gap-2">
+                      <FaCheck className="text-lg" />
+                      Programme sauvegardé ✅
+                    </div>
+                  ) : (
+                    // Not yet saved
+                    <button
+                      onClick={() => handleSaveProgram(index)}
+                      disabled={saveLoading}
+                      className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-semibold px-8 py-3 rounded-full shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transition-all duration-300 flex items-center gap-2 transform hover:scale-105"
+                    >
+                      <FaSave className="text-lg" />
+                      {saveLoading
+                        ? 'Enregistrement en cours...'
+                        : `Sauvegarder ce programme`
+                      }
+                    </button>
+                  )
                 ) : (
-                  // Programme sauvegardé - bouton de statut
+                  // Saved program from URL
                   <div className="bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg shadow-green-500/30 flex items-center gap-2">
                     <FaCheck className="text-lg" />
                     Programme sauvegardé ✅
                   </div>
                 )}
 
-                {/* Bouton "Générer un autre programme" - toujours visible */}
-                <button
-                  onClick={handleGenerateAnother}
-                  disabled={loading}
-                  className="bg-gradient-to-r from-purple-700 to-blue-700 hover:from-purple-800 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-semibold px-8 py-3 rounded-full shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transition-all duration-300 flex items-center gap-2 transform hover:scale-105"
-                >
-                  <FaMagic className="text-lg" />
-                  Générer un autre programme
-                </button>
+                {/* Generate Another Button - Only show for last program if less than 2 */}
+                {index === programs.length - 1 && programs.length < 2 && (
+                  <button
+                    onClick={handleGenerateAnother}
+                    disabled={loading}
+                    className="bg-gradient-to-r from-purple-700 to-blue-700 hover:from-purple-800 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-semibold px-8 py-3 rounded-full shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transition-all duration-300 flex items-center gap-2 transform hover:scale-105"
+                  >
+                    <FaMagic className="text-lg" />
+                    Générer un autre programme
+                  </button>
+                )}
+
+                {/* Compare Button - Only show when we have 2 or more programs */}
+                {programs.length >= 2 && index === programs.length - 1 && (
+                  <button
+                    onClick={handleComparePrograms}
+                    disabled={compareLoading}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-semibold px-8 py-3 rounded-full shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all duration-300 flex items-center gap-2 transform hover:scale-105"
+                  >
+                    <FaChartBar className="text-lg" />
+                    {compareLoading ? 'Comparaison en cours...' : 'Comparer les programmes'}
+                  </button>
+                )}
               </div>
             </>
           ) : (

@@ -27,19 +27,45 @@ const TripCard = ({ place, programmeId, onStatusChange, onFavoriteChange }: Trip
     }, [programmeId]);
 
     const checkIfFavorite = async () => {
+        if (!programmeId) {
+            console.warn('⚠️ Aucun programmeId fourni pour vérifier les favoris');
+            return;
+        }
+
         try {
-            const response = await fetch('/api/favorites');
+            const response = await fetch('/api/favorites', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // Ajouter un timeout pour éviter les requêtes qui traînent
+                signal: AbortSignal.timeout(5000)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
             const data = await response.json();
 
-            if (response.ok && data.favorites) {
+            if (data.favorites && Array.isArray(data.favorites)) {
                 const isAlreadyFavorite = data.favorites.some((fav: any) => fav.programmeId === programmeId);
                 setIsFavorite(isAlreadyFavorite);
                 console.log(`🔍 Programme ${programmeId} ${isAlreadyFavorite ? 'est' : 'n\'est pas'} en favoris`);
             } else {
-                console.warn('⚠️ Impossible de vérifier les favoris:', data.error || 'Réponse invalide');
+                console.warn('⚠️ Format de réponse invalide pour les favoris:', data);
+                setIsFavorite(false);
             }
         } catch (error) {
-            console.error('❌ Erreur lors de la vérification des favoris:', error);
+            if (error.name === 'AbortError') {
+                console.warn('⏰ Timeout lors de la vérification des favoris');
+            } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                console.warn('🌐 Erreur de connexion lors de la vérification des favoris');
+            } else {
+                console.error('❌ Erreur lors de la vérification des favoris:', error);
+            }
+            // En cas d'erreur, on assume que ce n'est pas un favori
+            setIsFavorite(false);
         }
     };
 
