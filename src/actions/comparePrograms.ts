@@ -21,7 +21,7 @@ function calculateMetrics(programme: any[], budget: number) {
   const numberOfDays = programme.length;
   const totalCost = programme.reduce((sum, day) => sum + (day.cout || 0), 0);
   const avgCostPerDay = numberOfDays > 0 ? totalCost / numberOfDays : 0;
-  
+
   const totalActivities = programme.reduce((sum, day) => {
     let count = 0;
     if (day.matin) count++;
@@ -29,9 +29,9 @@ function calculateMetrics(programme: any[], budget: number) {
     if (day.soir) count++;
     return sum + count;
   }, 0);
-  
+
   const totalDistance = programme.reduce((sum, day) => sum + (day.distanceKm || 0), 0);
-  
+
   const categories = new Set<string>();
   programme.forEach(day => {
     if (day.categorieActivites) {
@@ -40,20 +40,20 @@ function calculateMetrics(programme: any[], budget: number) {
       });
     }
   });
-  
+
   const avgIntensity = programme.reduce((sum, day) => {
     if (day.tempsEstime) {
-      const dailyTime = (day.tempsEstime.matin || 0) + 
-                       (day.tempsEstime.apresmidi || 0) + 
-                       (day.tempsEstime.soir || 0);
+      const dailyTime = (day.tempsEstime.matin || 0) +
+        (day.tempsEstime.apresmidi || 0) +
+        (day.tempsEstime.soir || 0);
       return sum + dailyTime;
     }
     return sum;
   }, 0) / numberOfDays;
-  
+
   const hotel = programme[0]?.hotel;
   const valueScore = totalActivities > 0 ? (totalActivities * 10) / (totalCost + 1) : 0;
-  
+
   return {
     totalCost: {
       value: `${totalCost}€`,
@@ -115,23 +115,25 @@ function extractCategories(programme: any[]) {
     nightlife: false,
     sports: false
   };
-  
+
   programme.forEach(day => {
     if (day.categorieActivites) {
       Object.values(day.categorieActivites).forEach(cat => {
-        const category = (cat as string).toLowerCase();
-        if (category === 'culture') categories.culture = true;
-        if (category === 'nature') categories.nature = true;
-        if (category === 'gastronomie' || category === 'gastronomy') categories.gastronomy = true;
-        if (category === 'aventure' || category === 'adventure') categories.adventure = true;
-        if (category === 'relaxation' || category === 'détente') categories.relaxation = true;
-        if (category === 'shopping') categories.shopping = true;
-        if (category === 'nightlife' || category === 'vie nocturne') categories.nightlife = true;
-        if (category === 'sports' || category === 'sport') categories.sports = true;
+        if (cat && typeof cat === 'string') {
+          const category = cat.toLowerCase();
+          if (category === 'culture') categories.culture = true;
+          if (category === 'nature') categories.nature = true;
+          if (category === 'gastronomie' || category === 'gastronomy') categories.gastronomy = true;
+          if (category === 'aventure' || category === 'adventure') categories.adventure = true;
+          if (category === 'relaxation' || category === 'détente') categories.relaxation = true;
+          if (category === 'shopping') categories.shopping = true;
+          if (category === 'nightlife' || category === 'vie nocturne') categories.nightlife = true;
+          if (category === 'sports' || category === 'sport') categories.sports = true;
+        }
       });
     }
   });
-  
+
   return categories;
 }
 
@@ -143,29 +145,29 @@ function determineWinners(metrics1: any, metrics2: any) {
   } else if (metrics2.totalCost.numericValue < metrics1.totalCost.numericValue) {
     metrics2.totalCost.isWinner = true;
   }
-  
+
   // Le moins cher par jour gagne
   if (metrics1.avgCostPerDay.numericValue < metrics2.avgCostPerDay.numericValue) {
     metrics1.avgCostPerDay.isWinner = true;
   } else if (metrics2.avgCostPerDay.numericValue < metrics1.avgCostPerDay.numericValue) {
     metrics2.avgCostPerDay.isWinner = true;
   }
-  
+
   const higherIsBetter = [
     'numberOfDays', 'totalActivities', 'activityDiversity', 'valueForMoney'
   ];
-  
+
   higherIsBetter.forEach(metric => {
     const val1 = metric === 'valueForMoney' ? metrics1[metric].score : metrics1[metric].numericValue;
     const val2 = metric === 'valueForMoney' ? metrics2[metric].score : metrics2[metric].numericValue;
-    
+
     if (val1 > val2) {
       metrics1[metric].isWinner = true;
     } else if (val2 > val1) {
       metrics2[metric].isWinner = true;
     }
   });
-  
+
   if (metrics1.hotel.stars > metrics2.hotel.stars) {
     metrics1.hotel.isWinner = true;
   } else if (metrics2.hotel.stars > metrics1.hotel.stars) {
@@ -190,7 +192,7 @@ function generateSmartRecommendation(
   // Analyse du budget
   const budgetDiff1 = Math.abs(metrics1.totalCost.numericValue - userBudget);
   const budgetDiff2 = Math.abs(metrics2.totalCost.numericValue - userBudget);
-  
+
   if (budgetDiff1 < budgetDiff2) {
     recommendations.push(`Le **Programme 1** est plus proche de votre budget initial (${userBudget}€) avec un écart de seulement ${budgetDiff1}€.`);
     score1 += 3;
@@ -278,17 +280,13 @@ function generateSmartRecommendation(
   // Générer la conclusion
   let conclusion = '';
   if (bestProgram === 1) {
-    conclusion = `🏆 **Notre recommandation : Programme 1**\n\nBasé sur vos critères (budget de ${userBudget}€, voyage ${userType}), le Programme 1 semble être le meilleur choix. Il offre ${
-      budgetDiff1 < budgetDiff2 ? 'un meilleur respect de votre budget' : ''
-    } ${
-      metrics1.valueForMoney.score > metrics2.valueForMoney.score ? 'et un excellent rapport qualité-prix' : ''
-    }.`;
+    conclusion = `🏆 **Notre recommandation : Programme 1**\n\nBasé sur vos critères (budget de ${userBudget}€, voyage ${userType}), le Programme 1 semble être le meilleur choix. Il offre ${budgetDiff1 < budgetDiff2 ? 'un meilleur respect de votre budget' : ''
+      } ${metrics1.valueForMoney.score > metrics2.valueForMoney.score ? 'et un excellent rapport qualité-prix' : ''
+      }.`;
   } else if (bestProgram === 2) {
-    conclusion = `🏆 **Notre recommandation : Programme 2**\n\nLe Programme 2 correspond mieux à vos attentes avec ${
-      budgetDiff2 < budgetDiff1 ? 'un respect optimal de votre budget' : ''
-    } ${
-      metrics2.hotel.stars > metrics1.hotel.stars ? 'et un hébergement de meilleure qualité' : ''
-    }.`;
+    conclusion = `🏆 **Notre recommandation : Programme 2**\n\nLe Programme 2 correspond mieux à vos attentes avec ${budgetDiff2 < budgetDiff1 ? 'un respect optimal de votre budget' : ''
+      } ${metrics2.hotel.stars > metrics1.hotel.stars ? 'et un hébergement de meilleure qualité' : ''
+      }.`;
   } else {
     conclusion = `⚖️ **Les deux programmes sont équivalents**\n\nLes deux options offrent une qualité similaire. Choisissez selon vos préférences personnelles : le Programme 1 pour ${metrics1.hotel.value} ou le Programme 2 pour ${metrics2.hotel.value}.`;
   }
@@ -330,7 +328,7 @@ export async function comparePrograms(
     console.log('📊 Calcul des métriques...');
     const program1Metrics = calculateMetrics(program1Data.programme, program1Data.budget);
     const program2Metrics = calculateMetrics(program2Data.programme, program2Data.budget);
-    
+
     determineWinners(program1Metrics, program2Metrics);
 
     // 4. Extraire les catégories RÉELLES
@@ -392,7 +390,7 @@ export async function comparePrograms(
     // 7. SAUVEGARDER dans MongoDB
     console.log('💾 Sauvegarde dans MongoDB...');
     const comparison = await Comparison.create(comparisonData);
-    
+
     console.log('✅ Comparaison créée avec succès!');
     console.log('📝 ID:', comparison._id.toString());
 

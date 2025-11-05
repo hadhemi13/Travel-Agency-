@@ -57,10 +57,14 @@ const TripCard = ({ place, programmeId, onStatusChange, onFavoriteChange }: Trip
                 setIsFavorite(false);
             }
         } catch (error) {
-            if (error.name === 'AbortError') {
-                console.warn('⏰ Timeout lors de la vérification des favoris');
-            } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                console.warn('🌐 Erreur de connexion lors de la vérification des favoris');
+            if (error instanceof Error) {
+                if (error.name === 'AbortError') {
+                    console.warn('⏰ Timeout lors de la vérification des favoris');
+                } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    console.warn('🌐 Erreur de connexion lors de la vérification des favoris');
+                } else {
+                    console.error('❌ Erreur lors de la vérification des favoris:', error);
+                }
             } else {
                 console.error('❌ Erreur lors de la vérification des favoris:', error);
             }
