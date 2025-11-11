@@ -103,6 +103,33 @@ const TripCard = ({ place, programmeId, onStatusChange, onFavoriteChange }: Trip
         }
     };
 
+    const getProgrammeDetails = async () => {
+        if (!programmeId) return null;
+        const urls = [
+            `/api/programmes/${programmeId}`,
+            `/api/saved-programmes/${programmeId}`
+        ];
+
+        for (const url of urls) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) continue;
+                const data = await res.json();
+                const programme = data?.programme;
+                if (programme) {
+                    return programme;
+                }
+                if (data?.programme?.programme) {
+                    return data.programme.programme;
+                }
+            } catch (error) {
+                console.warn(`⚠️ Impossible de récupérer le programme via ${url}`, error);
+            }
+        }
+
+        return null;
+    };
+
     const handleFavoriteToggle = async () => {
         if (!programmeId || isFavoriteUpdating) return;
 
@@ -110,6 +137,47 @@ const TripCard = ({ place, programmeId, onStatusChange, onFavoriteChange }: Trip
         const newFavoriteStatus = !isFavorite;
 
         try {
+            let programmePayload = null;
+
+            if (newFavoriteStatus) {
+                const programmeDetails = await getProgrammeDetails();
+                if (!programmeDetails) {
+                    alert('❌ Impossible de récupérer le programme complet. Réessayez plus tard.');
+                    setIsFavoriteUpdating(false);
+                    return;
+                }
+
+                const baseProgramme = Array.isArray(programmeDetails?.programme)
+                    ? programmeDetails.programme
+                    : Array.isArray(programmeDetails)
+                        ? programmeDetails
+                        : Array.isArray(programmeDetails?.programme?.programme)
+                            ? programmeDetails.programme.programme
+                            : programmeDetails?.programme || [];
+
+                if (!Array.isArray(baseProgramme) || baseProgramme.length === 0) {
+                    alert('❌ Programme vide. Impossible d’ajouter aux favoris.');
+                    setIsFavoriteUpdating(false);
+                    return;
+                }
+
+                const meta = Array.isArray(programmeDetails) ? {} : programmeDetails;
+
+                programmePayload = {
+                    title: name,
+                    destinationName: meta.destination || place.address || name,
+                    type: meta.type || category.name,
+                    budget: meta.budget || place.price || 0,
+                    startDate: meta.startDate || new Date().toISOString(),
+                    endDate:
+                        meta.endDate ||
+                        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                    voyageurs: meta.voyageurs || 1,
+                    programme: baseProgramme,
+                    originalProgrammeId: meta.originalProgrammeId || meta.programmeId || null
+                };
+            }
+
             const response = await fetch('/api/favorites', {
                 method: 'POST',
                 headers: {
@@ -118,16 +186,7 @@ const TripCard = ({ place, programmeId, onStatusChange, onFavoriteChange }: Trip
                 body: JSON.stringify({
                     programmeId: programmeId,
                     isFavorite: newFavoriteStatus,
-                    programmeData: {
-                        title: name,
-                        destinationName: place.address,
-                        type: category.name,
-                        budget: place.price || 0,
-                        startDate: new Date().toISOString(),
-                        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-                        voyageurs: 1,
-                        programme: {}
-                    }
+                    programmeData: programmePayload
                 }),
             });
 

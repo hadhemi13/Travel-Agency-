@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
 
 // GET - Récupérer un programme favori spécifique
+// Cherche d'abord dans SavedProgramme, puis dans ProgrammesVoyage si pas trouvé
 export async function GET(request, { params }) {
     try {
         const session = await getServerSession(authOptions);
@@ -14,7 +15,8 @@ export async function GET(request, { params }) {
 
         const { id } = await params;
 
-        const programme = await prisma.savedProgramme.findFirst({
+        // Chercher d'abord dans SavedProgramme
+        let programme = await prisma.savedProgramme.findFirst({
             where: {
                 id: id,
                 userId: session.user.id
@@ -24,28 +26,65 @@ export async function GET(request, { params }) {
             }
         });
 
-        if (!programme) {
-            return NextResponse.json({ error: 'Programme non trouvé' }, { status: 404 });
-        }
+        let programmeFormatted;
 
-        const programmeFormatted = {
-            id: programme.id,
-            programmeId: programme.programmeId,
-            originalProgrammeId: programme.originalProgrammeId,
-            name: programme.title,
-            destination: programme.destinationName,
-            type: programme.type,
-            budget: programme.budget,
-            startDate: programme.startDate,
-            endDate: programme.endDate,
-            voyageurs: programme.voyageurs,
-            programme: programme.programme,
-            isCustom: programme.isCustom || false,
-            customPrompt: programme.customPrompt || null,
-            parentId: programme.parentId || null,
-            createdAt: programme.savedAt,
-            duration: Math.ceil((new Date(programme.endDate) - new Date(programme.startDate)) / (1000 * 60 * 60 * 24))
-        };
+        if (programme) {
+            // Programme trouvé dans SavedProgramme
+            programmeFormatted = {
+                id: programme.id,
+                programmeId: programme.programmeId,
+                originalProgrammeId: programme.originalProgrammeId,
+                name: programme.title,
+                destination: programme.destinationName,
+                type: programme.type,
+                budget: programme.budget,
+                startDate: programme.startDate,
+                endDate: programme.endDate,
+                voyageurs: programme.voyageurs,
+                programme: programme.programme,
+                isCustom: programme.isCustom || false,
+                customPrompt: programme.customPrompt || null,
+                parentId: programme.parentId || null,
+                createdAt: programme.savedAt,
+                duration: Math.ceil((new Date(programme.endDate) - new Date(programme.startDate)) / (1000 * 60 * 60 * 24))
+            };
+        } else {
+            // Chercher dans ProgrammesVoyage
+            const programmeVoyage = await prisma.programmesVoyage.findFirst({
+                where: {
+                    id: id,
+                    userId: session.user.id
+                }
+            });
+
+            if (!programmeVoyage) {
+                return NextResponse.json({ error: 'Programme non trouvé' }, { status: 404 });
+            }
+
+            // Formater le programme de ProgrammesVoyage
+            programmeFormatted = {
+                id: programmeVoyage.id,
+                programmeId: programmeVoyage.id,
+                originalProgrammeId: null,
+                name: `${programmeVoyage.destinationName} - ${programmeVoyage.type}`,
+                destination: programmeVoyage.destinationName,
+                type: programmeVoyage.type,
+                budget: programmeVoyage.budget,
+                startDate: programmeVoyage.startDate,
+                endDate: programmeVoyage.endDate,
+                voyageurs: programmeVoyage.voyageurs,
+                programme: programmeVoyage.programme,
+                isCustom: false,
+                customPrompt: null,
+                parentId: null,
+                createdAt: programmeVoyage.createdAt,
+                duration: Math.ceil((new Date(programmeVoyage.endDate) - new Date(programmeVoyage.startDate)) / (1000 * 60 * 60 * 24)),
+                categoriesActivites: programmeVoyage.categoriesActivites || {},
+                tempsEstime: programmeVoyage.tempsEstime || {},
+                distancesKm: programmeVoyage.distancesKm || {},
+                hotelInfo: programmeVoyage.hotelInfo || null
+            };
+        }
 
         return NextResponse.json({ 
             success: true,

@@ -46,15 +46,31 @@ export default function TripResults() {
   const [compareError, setCompareError] = useState<string | null>(null);
   const [isSavedProgram, setIsSavedProgram] = useState(false);
 
-  const destination = searchParams.get('destination') || '';
-  const type = searchParams.get('typeVoyage') || 'Aventure';
-  const startDate = searchParams.get('dateDebut') || '';
-  const endDate = searchParams.get('dateFin') || '';
-  const budget = Number(searchParams.get('budget') || 0);
-  const voyageurs = Number(searchParams.get('voyageurs') || 1);
+  const initialDestination = searchParams.get('destination') || '';
+  const initialType = searchParams.get('typeVoyage') || 'Aventure';
+  const initialStartDate = searchParams.get('dateDebut') || '';
+  const initialEndDate = searchParams.get('dateFin') || '';
+  const initialBudget = Number(searchParams.get('budget') || 0);
+  const initialVoyageurs = Number(searchParams.get('voyageurs') || 1);
   const dureeActivites = searchParams.get('dureeActivites') || '';
   const preferenceRepas = searchParams.get('preferenceRepas') || '';
   const rythmeSejour = searchParams.get('rythmeSejour') || '';
+
+  const [destination, setDestination] = useState(initialDestination);
+  const [type, setType] = useState(initialType);
+  const [startDate, setStartDate] = useState(initialStartDate);
+  const [endDate, setEndDate] = useState(initialEndDate);
+  const [budget, setBudget] = useState(initialBudget);
+  const [voyageurs, setVoyageurs] = useState(initialVoyageurs);
+
+  useEffect(() => {
+    setDestination(initialDestination);
+    setType(initialType);
+    setStartDate(initialStartDate);
+    setEndDate(initialEndDate);
+    setBudget(initialBudget);
+    setVoyageurs(initialVoyageurs);
+  }, [initialDestination, initialType, initialStartDate, initialEndDate, initialBudget, initialVoyageurs]);
 
   // Load theme
   useEffect(() => {
@@ -94,37 +110,97 @@ export default function TripResults() {
   const fetchSavedProgram = async (programmeId: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/saved-programmes/${programmeId}`);
-      const data = await res.json();
+      const fetchProgramme = async (url: string) => {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) return null;
+          const data = await res.json();
+          return data?.programme || null;
+        } catch (error) {
+          console.warn(`⚠️ Impossible de récupérer le programme via ${url}`, error);
+          return null;
+        }
+      };
 
-      if (res.ok && data.programme) {
-        const savedProgram = data.programme;
+      // Essayer d'abord via saved-programmes (préférence pour les personnalisations/favoris)
+      let savedProgram = await fetchProgramme(`/api/saved-programmes/${programmeId}`);
 
-        // Convert saved program to TripProgram format
-        const formatted: TripProgram[] = (Array.isArray(savedProgram.programme) ? savedProgram.programme : []).map(
-          (item: any) => ({
-            day: item.day,
-            morning: item.matin || '',
-            afternoon: item.apresmidi || '',
-            evening: item.soir || '',
-            places: item.lieu || '',
-            flight: item.flight || '',
-            cost: item.cout || 0,
-            categorieActivites: item.categorieActivites || {},
-            tempsEstime: item.tempsEstime || {},
-            distanceKm: item.distanceKm || 0,
-            hotel: item.hotel || null
-          })
-        );
-
-        setPrograms([formatted]);
-        // Set the Supabase ID for the saved program
-        setProgramSupabaseIds([programmeId]);
-      } else {
-        console.error('❌ Programme sauvegardé non trouvé');
-        // Fallback: générer un programme basique avec les données de l'URL
-        fetchItinerary();
+      // Si pas trouvé, tenter via programmes (programme généré initial)
+      if (!savedProgram) {
+        savedProgram = await fetchProgramme(`/api/programmes/${programmeId}`);
       }
+
+      // Dernier recours : requête GET /api/saved-programmes?programmeId=
+      if (!savedProgram) {
+        savedProgram = await fetchProgramme(`/api/saved-programmes?programmeId=${programmeId}`);
+      }
+
+      if (!savedProgram) {
+        console.error('❌ Programme sauvegardé non trouvé (toutes sources)');
+        fetchItinerary();
+        return;
+      }
+
+      if (!Array.isArray(savedProgram)) {
+        const meta = savedProgram as any;
+        if (meta.destinationName || meta.destination) {
+          setDestination(meta.destinationName || meta.destination || destination);
+        }
+        if (meta.type) {
+          setType(meta.type);
+        }
+        if (meta.startDate) {
+          const iso = new Date(meta.startDate).toISOString().split('T')[0];
+          setStartDate(iso);
+        }
+        if (meta.endDate) {
+          const iso = new Date(meta.endDate).toISOString().split('T')[0];
+          setEndDate(iso);
+        }
+        if (meta.budget !== undefined && meta.budget !== null) {
+          const parsedBudget = Number(meta.budget);
+          if (!Number.isNaN(parsedBudget)) {
+            setBudget(parsedBudget);
+          }
+        }
+        if (meta.voyageurs) {
+          const parsedVoyageurs = Number(meta.voyageurs);
+          if (!Number.isNaN(parsedVoyageurs)) {
+            setVoyageurs(parsedVoyageurs);
+          }
+        }
+      }
+
+      const daysArray = Array.isArray(savedProgram?.programme)
+        ? savedProgram.programme
+        : Array.isArray(savedProgram)
+          ? savedProgram
+          : Array.isArray(savedProgram?.programme?.programme)
+            ? savedProgram.programme.programme
+            : [];
+
+      if (!Array.isArray(daysArray) || daysArray.length === 0) {
+        console.error('⚠️ Programme sans jours, fallback sur génération IA');
+        fetchItinerary();
+        return;
+      }
+
+      const formatted: TripProgram[] = daysArray.map((item: any, index: number) => ({
+        day: item.day ?? item.jour ?? index + 1,
+        morning: item.matin || item.morning || '',
+        afternoon: item.apresmidi || item.afternoon || '',
+        evening: item.soir || item.evening || '',
+        places: item.lieu || item.places || '',
+        flight: item.flight || '',
+        cost: item.cout ?? item.cost ?? 0,
+        categorieActivites: item.categorieActivites || {},
+        tempsEstime: item.tempsEstime || {},
+        distanceKm: item.distanceKm ?? 0,
+        hotel: item.hotel || null
+      }));
+
+      setPrograms([formatted]);
+      setProgramSupabaseIds([savedProgram.id || savedProgram.programmeId || programmeId]);
     } catch (err) {
       console.error('❌ Erreur récupération programme sauvegardé:', err);
       // Fallback: générer un programme basique
@@ -623,8 +699,8 @@ export default function TripResults() {
                   </div>
                 )}
 
-                {/* Generate Another Button - Only show for last program if less than 2 */}
-                {index === programs.length - 1 && programs.length < 2 && (
+                {/* Generate Another Button - Only show for last program if less than 2 AND not from TourCard (saved program) */}
+                {index === programs.length - 1 && programs.length < 2 && !isSavedProgram && (
                   <button
                     onClick={handleGenerateAnother}
                     disabled={loading}

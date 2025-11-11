@@ -47,15 +47,20 @@ const TourCard = ({ tour, onFavoriteChange }: TourCardProps) => {
             return
         }
 
+        // Créer un AbortController pour le timeout
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 5000)
+
         try {
             const response = await fetch('/api/favorites', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                // Ajouter un timeout pour éviter les requêtes qui traînent
-                signal: AbortSignal.timeout(5000)
+                signal: controller.signal
             })
+
+            clearTimeout(timeoutId)
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -64,7 +69,7 @@ const TourCard = ({ tour, onFavoriteChange }: TourCardProps) => {
             const data = await response.json()
 
             if (data.favorites && Array.isArray(data.favorites)) {
-                const isAlreadyFavorite = data.favorites.some((fav: any) => fav.programmeId === programmeId)
+                const isAlreadyFavorite = data.favorites.some((fav: any) => fav.programmeId === programmeId || fav.id === programmeId)
                 setIsFavorite(isAlreadyFavorite)
                 console.log(`🔍 Programme ${programmeId} ${isAlreadyFavorite ? 'est' : 'n\'est pas'} en favoris`)
             } else {
@@ -72,6 +77,8 @@ const TourCard = ({ tour, onFavoriteChange }: TourCardProps) => {
                 setIsFavorite(false)
             }
         } catch (error) {
+            clearTimeout(timeoutId)
+
             if (error instanceof Error) {
                 if (error.name === 'AbortError') {
                     console.warn('⏰ Timeout lors de la vérification des favoris')
@@ -88,12 +95,38 @@ const TourCard = ({ tour, onFavoriteChange }: TourCardProps) => {
         }
     }
 
-    const handleFavoriteToggle = async () => {
-        let programmeId = tour.programmeId || tour.originalId
+    const getProgrammeDetails = async (programmeId: string) => {
+        const fetchProgramme = async (url: string) => {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) {
+                    return null;
+                }
+                const data = await res.json();
+                return data?.programme || null;
+            } catch (error) {
+                console.warn(`⚠️ Impossible de récupérer le programme via ${url}`, error);
+                return null;
+            }
+        };
 
-        // Valider et corriger l'UUID si nécessaire
-        if (!programmeId || !isValidUUID(programmeId)) {
-            programmeId = generateSimpleUUID()
+        const programmeFromSaved = await fetchProgramme(`/api/saved-programmes/${programmeId}`);
+        if (programmeFromSaved) return programmeFromSaved;
+
+        const programmeFromVoyage = await fetchProgramme(`/api/programmes/${programmeId}`);
+        if (programmeFromVoyage) return programmeFromVoyage;
+
+        const programmeFromSavedQuery = await fetchProgramme(`/api/saved-programmes?programmeId=${programmeId}`);
+        if (programmeFromSavedQuery) return programmeFromSavedQuery;
+
+        return null;
+    };
+
+    const handleFavoriteToggle = async () => {
+        let programmeId = tour.programmeId || tour.originalId;
+
+        if (!programmeId) {
+            programmeId = tour.originalId || tour.programmeId || tour.id?.toString() || generateSimpleUUID();
         }
 
         if (!programmeId || isFavoriteUpdating) return
@@ -102,6 +135,60 @@ const TourCard = ({ tour, onFavoriteChange }: TourCardProps) => {
         const newFavoriteStatus = !isFavorite
 
         try {
+            let programmePayload = null
+
+            if (newFavoriteStatus) {
+                let programmeDetails = null;
+                const candidateIds = [tour.originalId, tour.programmeId, tour.id?.toString()].filter(Boolean) as string[];
+
+                for (const candidateId of candidateIds) {
+                    programmeDetails = await getProgrammeDetails(candidateId);
+                    if (programmeDetails) {
+                        break;
+                    }
+                }
+
+                if (!programmeDetails) {
+                    programmeDetails = await getProgrammeDetails(programmeId);
+                }
+
+                if (!programmeDetails) {
+                    alert('❌ Impossible de récupérer le programme complet. Réessayez plus tard.')
+                    setIsFavoriteUpdating(false)
+                    return
+                }
+
+                const meta = Array.isArray(programmeDetails) ? {} : programmeDetails;
+
+                const programmeArray = Array.isArray(meta.programme)
+                    ? meta.programme
+                    : Array.isArray(programmeDetails)
+                        ? programmeDetails
+                        : Array.isArray(meta?.programme?.programme)
+                            ? meta.programme.programme
+                            : Array.isArray(meta?.days)
+                                ? meta.days
+                                : [];
+
+                if (!Array.isArray(programmeArray) || programmeArray.length === 0) {
+                    alert('❌ Programme vide. Impossible d’ajouter aux favoris.');
+                    setIsFavoriteUpdating(false);
+                    return;
+                }
+
+                programmePayload = {
+                    title: name,
+                    destinationName: meta.destination || tour.name,
+                    type: meta.type || type,
+                    budget: meta.budget || price,
+                    startDate: meta.startDate || new Date().toISOString(),
+                    endDate: meta.endDate || new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString(),
+                    voyageurs: meta.voyageurs || 1,
+                    programme: programmeArray,
+                    originalProgrammeId: meta.originalProgrammeId || meta.programmeId || null
+                }
+            }
+
             const response = await fetch('/api/favorites', {
                 method: 'POST',
                 headers: {
@@ -110,16 +197,7 @@ const TourCard = ({ tour, onFavoriteChange }: TourCardProps) => {
                 body: JSON.stringify({
                     programmeId: programmeId,
                     isFavorite: newFavoriteStatus,
-                    programmeData: {
-                        title: name,
-                        destinationName: tour.name,
-                        type: type,
-                        budget: price,
-                        startDate: new Date().toISOString(),
-                        endDate: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString(),
-                        voyageurs: 1,
-                        programme: {}
-                    }
+                    programmeData: programmePayload
                 }),
             })
 
@@ -148,7 +226,10 @@ const TourCard = ({ tour, onFavoriteChange }: TourCardProps) => {
     const generateShareUrl = () => {
         const baseUrl = window.location.origin
         const programmeId = tour.originalId || tour.programmeId || tour.id
-        const url = `${baseUrl}/trip-results?destination=${encodeURIComponent(tour.name)}&typeVoyage=${encodeURIComponent(tour.type)}&dateDebut=${encodeURIComponent(tour.travelDate.split(' → ')[0])}&dateFin=${encodeURIComponent(tour.travelDate.split(' → ')[1])}&budget=${tour.price}&voyageurs=1&programmeId=${programmeId}`
+        const travelDates = tour.travelDate.split(' → ')
+        const dateDebut = travelDates[0] || ''
+        const dateFin = travelDates[1] || ''
+        const url = `${baseUrl}/trip-results?destination=${encodeURIComponent(tour.name)}&typeVoyage=${encodeURIComponent(tour.type)}&dateDebut=${encodeURIComponent(dateDebut)}&dateFin=${encodeURIComponent(dateFin)}&budget=${tour.price}&voyageurs=1&programmeId=${programmeId}`
         setShareUrl(url)
         return url
     }
@@ -255,7 +336,39 @@ const TourCard = ({ tour, onFavoriteChange }: TourCardProps) => {
 
                 {/* Action Row */}
                 <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-600">
-                    <Link href={`/trip-results?destination=${encodeURIComponent(tour.name)}&typeVoyage=${encodeURIComponent(tour.type)}&dateDebut=${encodeURIComponent(tour.travelDate.split(' → ')[0])}&dateFin=${encodeURIComponent(tour.travelDate.split(' → ')[1])}&budget=${tour.price}&voyageurs=1&programmeId=${tour.originalId || tour.programmeId || tour.id}`} className="flex items-center text-[#8e85e6] hover:text-[#7a6deb] transition-colors text-sm font-medium">
+                    <Link
+                        href={(() => {
+                            // Prioriser programmeId (ID dans ProgrammesVoyage) car c'est là que sont les détails complets
+                            // Sinon utiliser originalId (ID dans SavedProgramme)
+                            // L'API /api/saved-programmes/[id] cherche dans les deux tables automatiquement
+                            const programmeId = tour.originalId || tour.programmeId;
+
+                            if (!programmeId) {
+                                console.warn('⚠️ Aucun ID de programme disponible');
+                                return '#';
+                            }
+
+                            // Construire l'URL avec l'ID du programme
+                            // L'API cherchera d'abord dans SavedProgramme, puis dans ProgrammesVoyage
+                            const travelDates = tour.travelDate.split(' → ');
+                            const dateDebut = travelDates[0] || '';
+                            const dateFin = travelDates[1] || '';
+
+                            return `/trip-results?destination=${encodeURIComponent(tour.name)}&typeVoyage=${encodeURIComponent(tour.type)}&dateDebut=${encodeURIComponent(dateDebut)}&dateFin=${encodeURIComponent(dateFin)}&budget=${tour.price}&voyageurs=1&programmeId=${programmeId}`;
+                        })()}
+                        className="flex items-center text-[#8e85e6] hover:text-[#7a6deb] transition-colors text-sm font-medium"
+                        onClick={() => {
+                            const programmeId = tour.originalId || tour.programmeId;
+                            console.log('🔍 View details clicked:', {
+                                programmeId: programmeId,
+                                programmeIdField: tour.programmeId,
+                                originalId: tour.originalId,
+                                tourId: tour.id,
+                                name: tour.name,
+                                willFetch: `Récupération des détails depuis /api/saved-programmes/${programmeId} (cherche dans SavedProgramme puis ProgrammesVoyage)`
+                            });
+                        }}
+                    >
                         View detail <FaArrowRight className="ml-1" />
                     </Link>
 

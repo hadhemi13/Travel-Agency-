@@ -1,207 +1,456 @@
+function parseProgrammeData(rawProgramme) {
+    if (!rawProgramme) return null;
+    if (Array.isArray(rawProgramme)) return rawProgramme;
+    if (typeof rawProgramme === 'string') {
+        try {
+            const parsed = JSON.parse(rawProgramme);
+            return parseProgrammeData(parsed);
+        } catch (error) {
+            console.warn('⚠️ Impossible de parser le programme string, utilisation brute.', error);
+            return [];
+        }
+    }
+    if (rawProgramme?.programme) {
+        return parseProgrammeData(rawProgramme.programme);
+    }
+    return rawProgramme;
+}
+
+function findDaysArray(value) {
+    if (!value) return [];
+    if (Array.isArray(value)) {
+        const dayLikeItems = value.filter(
+            (item) => item && typeof item === 'object' && ('day' in item || 'jour' in item)
+        );
+        if (dayLikeItems.length && dayLikeItems.length === value.length) {
+            return value;
+        }
+        for (const item of value) {
+            const nested = findDaysArray(item);
+            if (nested.length) {
+                return nested;
+            }
+        }
+        return [];
+    }
+    if (typeof value === 'object') {
+        for (const key of Object.keys(value)) {
+            const result = findDaysArray(value[key]);
+            if (result.length) {
+                return result;
+            }
+        }
+    }
+    return [];
+}
+
+function ensureProgrammeArray(programme) {
+    const parsed = parseProgrammeData(programme);
+    if (Array.isArray(parsed)) return parsed;
+    if (Array.isArray(parsed?.programme)) return parsed.programme;
+
+    const convertNumericObjectToArray = (value) => {
+        if (!value || typeof value !== 'object' || Array.isArray(value)) {
+            return null;
+        }
+        const keys = Object.keys(value);
+        if (!keys.length) return null;
+        const numericKeys = keys.every((key) => !Number.isNaN(Number(key)));
+        if (!numericKeys) return null;
+        const dayObjects = keys.every((key) => {
+            const entry = value[key];
+            return entry && typeof entry === 'object' && ('day' in entry || 'jour' in entry);
+        });
+        if (!dayObjects) return null;
+        return keys
+            .sort((a, b) => Number(a) - Number(b))
+            .map((key, index) => {
+                const dayEntry = value[key];
+                const normalized = { ...dayEntry };
+                if (normalized.jour && !normalized.day) {
+                    const parsedJour = parseInt(normalized.jour, 10);
+                    if (!Number.isNaN(parsedJour)) {
+                        normalized.day = parsedJour;
+                    }
+                }
+                if (typeof normalized.day !== 'number') {
+                    normalized.day = index + 1;
+                }
+                return normalized;
+            });
+    };
+
+    const converted = convertNumericObjectToArray(parsed);
+    if (converted) return converted;
+
+    const convertedProgramme = convertNumericObjectToArray(parsed?.programme);
+    if (convertedProgramme) return convertedProgramme;
+
+    const nested = findDaysArray(parsed);
+    return nested;
+}
+
+function prepareDayForGemini(originalProgramme, dayToModify) {
+    const targetDay = originalProgramme.find((d) => Number(d.day) === Number(dayToModify));
+    if (!targetDay) {
+        throw new Error(`Jour ${dayToModify} non trouvé`);
+    }
+    return targetDay;
+}
+
+function normalizeDay(day, fallbackDayNumber) {
+    if (!day || typeof day !== 'object') {
+        throw new Error('Réponse IA invalide (format jour)');
+    }
+    const normalized = { ...day };
+    if (normalized.jour && !normalized.day) {
+        const parsedJour = parseInt(normalized.jour, 10);
+        if (!Number.isNaN(parsedJour)) {
+            normalized.day = parsedJour;
+        }
+        delete normalized.jour;
+    }
+    if (typeof normalized.day !== 'number') {
+        const parsedDay = parseInt(normalized.day, 10);
+        normalized.day = Number.isNaN(parsedDay) ? fallbackDayNumber : parsedDay;
+    }
+    if (!normalized.day) {
+        normalized.day = fallbackDayNumber;
+    }
+    return normalized;
+}
+
+function mergeCustomizedDay(originalProgramme, customizedDay) {
+    return originalProgramme.map((day) => {
+        if (Number(day.day) !== Number(customizedDay.day)) {
+            return day;
+        }
+        const merged = {
+            ...day,
+            ...customizedDay,
+            day: Number(customizedDay.day),
+            categorieActivites: {
+                ...(day.categorieActivites || {}),
+                ...(customizedDay.categorieActivites || {})
+            },
+            tempsEstime: {
+                ...(day.tempsEstime || {}),
+                ...(customizedDay.tempsEstime || {})
+            },
+            hotel: {
+                ...(day.hotel || {}),
+                ...(customizedDay.hotel || {})
+            }
+        };
+        if (merged.cout !== undefined) {
+            const parsedCout = Number(merged.cout);
+            merged.cout = Number.isFinite(parsedCout) ? parsedCout : day.cout;
+        } else if (day.cout !== undefined) {
+            merged.cout = day.cout;
+        }
+        if (merged.distanceKm !== undefined) {
+            const parsedDistance = Number(merged.distanceKm);
+            merged.distanceKm = Number.isFinite(parsedDistance) ? parsedDistance : day.distanceKm;
+        }
+        // Conserver les valeurs originales si manquantes dans la réponse IA
+        const keysToPreserve = ['matin', 'apresmidi', 'soir', 'lieu', 'repas', 'cout', 'distanceKm'];
+        for (const key of keysToPreserve) {
+            if (merged[key] === undefined) {
+                merged[key] = day[key];
+            }
+        }
+        return merged;
+    });
+}
+
+function extractDayFromPrompt(customPrompt) {
+    if (!customPrompt) return null;
+    const patterns = [
+        /jour\s+(\d+)/i,
+        /day\s+(\d+)/i,
+        /(\d+)(?:ème|e)\s*jour/i,
+        /(\d+)(?:st|nd|rd|th)\s*day/i,
+        /(?:modifier|change(?:r)?|remplacer)\s*(?:le\s+)?jour\s*(\d+)/i
+    ];
+    for (const pattern of patterns) {
+        const match = customPrompt.match(pattern);
+        if (match && match[1]) {
+            const parsed = parseInt(match[1], 10);
+            if (!Number.isNaN(parsed)) {
+                return parsed;
+            }
+        }
+    }
+    return null;
+}
+
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
 import { randomUUID } from 'crypto';
+import axios from 'axios';
 
-// Fonction pour appeler OpenAI (si la clé API est disponible)
-async function callOpenAI({ originalProgramme, customPrompt, destination, budget, duration }) {
-    // Vérifier si la clé API OpenAI est disponible
-    if (!process.env.OPENAI_API_KEY) {
+// Fonction pour appeler Gemini via API REST
+async function callGemini({ originalProgramme, customPrompt, metadata = {}, mode }) {
+    const aggregatedMetadata = {
+        ...(originalProgramme?.metadata || {}),
+        ...metadata
+    };
+
+    let promptMode = mode;
+    let programmeJson = originalProgramme;
+
+    if (originalProgramme && typeof originalProgramme === 'object' && 'programme' in originalProgramme) {
+        programmeJson = originalProgramme.programme;
+        if (!promptMode) {
+            promptMode = Array.isArray(programmeJson) ? 'programme' : 'day';
+        }
+    }
+
+    if (!promptMode) {
+        promptMode = Array.isArray(programmeJson) ? 'programme' : 'day';
+    }
+
+    // Vérifier si la clé API Gemini est disponible
+    if (!process.env.GOOGLE_API_KEY) {
+        console.error('❌ GOOGLE_API_KEY non configurée');
         return null;
     }
 
     try {
-        const { OpenAI } = await import('openai');
-        
-        const openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY,
-        });
+        let prompt = '';
 
-        const prompt = `
-        Personnalisez ce programme de voyage pour ${destination} selon la demande suivante:
-        
-        Demande: ${customPrompt}
-        
-        Programme original:
-        ${JSON.stringify(originalProgramme, null, 2)}
-        
-        Budget: ${budget}€
-        Durée: ${duration} jours
-        
-        Veuillez modifier le programme en gardant la structure mais en appliquant les changements demandés.
-        Répondez uniquement avec le JSON du programme modifié.
-        `;
+        if (promptMode === 'day') {
+            const dayJson = programmeJson;
+            const dayNumber = aggregatedMetadata.dayNumber ?? dayJson?.day ?? dayJson?.jour ?? '?';
+            const destination = aggregatedMetadata.destinationName || 'destination';
+            const type = aggregatedMetadata.type || 'Aventure';
 
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4",
-            messages: [
-                {
-                    role: "system",
-                    content: "Vous êtes un expert en voyage qui personnalise des programmes selon les demandes des clients. Répondez uniquement avec du JSON valide."
-                },
-                {
-                    role: "user",
-                    content: prompt
-                }
-            ],
-            temperature: 0.7,
-            max_tokens: 2000
-        });
+            prompt = `
+Tu es un assistant de planification de voyage EXPERT et précis.
 
-        return JSON.parse(completion.choices[0].message.content);
-    } catch (error) {
-        console.error('❌ Erreur OpenAI:', error);
-        return null;
-    }
+Voici le JOUR ${dayNumber} du programme ORIGINAL en format JSON :
+${JSON.stringify(dayJson, null, 2)}
+
+Contexte :
+- Destination : ${destination}
+- Type de voyage : ${type}
+
+L'utilisateur souhaite modifier ce jour ainsi :
+"${customPrompt}"
+
+⚠️ NE MODIFIE QUE CE JOUR, NE CHANGE PAS LES AUTRES JOURS, LES BUDGETS, LES DATES OU LES ACTIVITÉS DES AUTRES JOURS.
+
+➡️ RÈGLES :
+1. Respecte exactement la même structure JSON que l'objet fourni (mêmes clés, mêmes types).
+2. Assure-toi que "day" reste ${dayNumber}.
+3. Si une information n'est pas mentionnée dans la demande, conserve la valeur originale.
+4. Ne crée pas de texte hors JSON. Réponds UNIQUEMENT avec l'objet JSON du jour modifié.
+`;
+        } else {
+            const programmeMetadata = originalProgramme.programme ? originalProgramme : aggregatedMetadata;
+            const arrayProgramme = Array.isArray(programmeJson) ? programmeJson : [];
+            const originalStartDate = programmeMetadata?.startDate 
+                ? new Date(programmeMetadata.startDate) 
+                : (arrayProgramme.length > 0 ? new Date() : new Date());
+            const originalEndDate = programmeMetadata?.endDate 
+                ? new Date(programmeMetadata.endDate) 
+                : (arrayProgramme.length > 0 ? new Date() : new Date());
+            const originalNumberOfDays = arrayProgramme.length > 0
+                ? arrayProgramme.length
+                : (programmeMetadata?.startDate && programmeMetadata?.endDate
+                    ? Math.ceil((new Date(programmeMetadata.endDate) - new Date(programmeMetadata.startDate)) / (1000 * 60 * 60 * 24)) + 1
+                    : 7);
+            const originalBudget = programmeMetadata?.budget || 1000;
+            const originalDailyBudget = Math.floor(originalBudget / Math.max(originalNumberOfDays, 1));
+            const destination = programmeMetadata?.destinationName || "destination";
+            const type = programmeMetadata?.type || "Aventure";
+
+            prompt = `
+Tu es un assistant de planification de voyage EXPERT et intelligent.
+
+Voici le programme de voyage ORIGINAL en format JSON :
+${JSON.stringify(programmeJson, null, 2)}
+
+INFORMATIONS DU PROGRAMME ORIGINAL :
+- Destination : ${destination}
+- Type de voyage : ${type}
+- Date de début : ${originalStartDate.toISOString().split('T')[0]}
+- Date de fin : ${originalEndDate.toISOString().split('T')[0]}
+- Budget total : ${originalBudget} €
+- Nombre de jours : ${originalNumberOfDays}
+- Budget par jour : environ ${originalDailyBudget}€
+
+L'utilisateur souhaite les modifications suivantes :
+"${customPrompt}"
+
+➡️ RÈGLE FONDAMENTALE - TU DOIS ÊTRE PRÉCIS :
+🔴 NE MODIFIE QUE CE QUI EST EXPLICITEMENT DEMANDÉ dans "${customPrompt}"
+🔴 NE MODIFIE PAS les dates, le nombre de jours, ou le nombre de nuits SAUF si c'est explicitement mentionné dans la demande
+🔴 NE MODIFIE PAS les éléments qui ne sont pas mentionnés dans la demande
+
+➡️ TÂCHE IMPORTANTE :
+1. Analyse attentivement UNIQUEMENT ce qui est demandé dans "${customPrompt}"
+2. Applique SEULEMENT les modifications explicitement mentionnées
+
+➡️ MODIFICATIONS CIBLÉES PAR JOUR :
+- Si l'utilisateur mentionne un jour spécifique (ex: "jour 7", "jour 3", "le 7ème jour"), modifie UNIQUEMENT ce jour-là
+- Si l'utilisateur dit "modifier le jour 7" ou "changer le programme du jour 7", modifie SEULEMENT l'objet avec "day": 7
+- Les autres jours doivent rester IDENTIQUES à l'original
+- Exemples de modifications de jour spécifique :
+  * "Modifier le jour 7 pour ajouter une visite de musée" → modifie uniquement day: 7
+  * "Changer le programme du jour 3" → modifie uniquement day: 3
+  * "Jour 5 : remplacer par une journée plage" → modifie uniquement day: 5
+
+➡️ MODIFICATIONS DE PRIX :
+3. Si le budget est EXPLICITEMENT mentionné (ex: "budget à 800€", "réduire le budget", "augmenter le budget à 1200€"), alors :
+   - Modifie les coûts (cout) de TOUS les jours proportionnellement
+   - Le coût TOTAL du nouveau programme doit correspondre au nouveau budget
+   - Répartis le budget équitablement sur tous les jours
+   - Exemple : "budget à 800€" → somme des cout doit être ≈ 800€
+
+➡️ MODIFICATIONS DE NOMBRE DE NUITS/JOURS :
+4. Si le nombre de jours/nuits est EXPLICITEMENT mentionné (ex: "5 nuits", "5 jours", "changer à 5 nuits", "réduire à 5 jours"), alors :
+   - Modifie le tableau pour avoir EXACTEMENT ce nombre de jours
+   - Si on réduit : supprime les jours en trop (garde les premiers jours)
+   - Si on augmente : ajoute des jours similaires aux derniers jours existants
+   - Exemple : "changer à 5 nuits" → le tableau doit avoir exactement 5 éléments
+
+➡️ MODIFICATIONS D'ACTIVITÉS :
+5. Si des activités sont EXPLICITEMENT mentionnées, ajoute/modifie/supprime ces activités spécifiques
+   - Si c'est pour un jour spécifique : modifie uniquement ce jour
+   - Si c'est général : peut modifier plusieurs jours selon le contexte
+
+6. Si rien n'est mentionné concernant les dates, le nombre de jours, ou le nombre de nuits → NE LES MODIFIE PAS, garde le même nombre de jours
+7. CONSERVE ABSOLUMENT la structure JSON exacte du format original
+
+🔴 CONTRAINTE BUDGÉTAIRE (UNIQUEMENT si le budget est mentionné dans la demande) :
+- Si le budget est explicitement modifié dans la demande, le coût TOTAL du nouveau programme doit correspondre au nouveau budget
+- Répartis le budget proportionnellement sur tous les jours
+- Chaque jour doit avoir un coût réaliste (cout)
+- Si le budget n'est PAS mentionné dans la demande, garde les coûts actuels
+
+FORMAT STRICT REQUIS - Chaque jour DOIT avoir cette structure EXACTE :
+{
+  "day": 1,
+  "matin": "Activité du matin",
+  "apresmidi": "Activité de l'après-midi",
+  "soir": "Activité du soir",
+  "lieu": "Lieu à visiter ou quartier",
+  "repas": "Option de repas",
+  "cout": 100,
+  "categorieActivites": {
+    "matin": "culture",
+    "apresmidi": "nature",
+    "soir": "gastronomie"
+  },
+  "tempsEstime": {
+    "matin": 2,
+    "apresmidi": 3,
+    "soir": 2
+  },
+  "distanceKm": 10,
+  "hotel": {
+    "nom": "Nom de l'hôtel",
+    "etoiles": 4
+  }
 }
 
-// Fonction de simulation de l'IA (fallback)
-async function simulateAICustomization({ originalProgramme, customPrompt, modifications, destination, budget, duration }) {
-    // Simulation d'un délai d'API
-    await new Promise(resolve => setTimeout(resolve, 1000));
+RÈGLES STRICTES :
+- Le résultat DOIT être un tableau JSON valide : [ { day: 1, ... }, { day: 2, ... }, ... ]
+- Ne change PAS les noms des clés (matin, apresmidi, soir, lieu, repas, cout, categorieActivites, tempsEstime, distanceKm, hotel)
+- Chaque objet jour DOIT avoir TOUS les champs : day, matin, apresmidi, soir, lieu, repas, cout, categorieActivites, tempsEstime, distanceKm, hotel
+- Le nombre "etoiles" dans hotel DOIT être un NOMBRE (pas une chaîne)
+- L'hôtel doit être le MÊME dans tous les jours
+- Les catégories d'activités doivent être parmi : culture, nature, gastronomie, aventure, détente, shopping, vie nocturne, sport
+- 🔴 CRITIQUE : Si le nombre de jours/nuits est EXPLICITEMENT modifié dans la demande, le tableau DOIT avoir EXACTEMENT le bon nombre d'éléments
+- 🔴 CRITIQUE : Si le nombre de jours/nuits N'EST PAS mentionné dans la demande, garde EXACTEMENT le même nombre de jours que l'original
+- Chaque jour doit avoir un numéro "day" séquentiel (1, 2, 3, etc.)
 
-    // Analyser le prompt pour comprendre les modifications demandées
-    const promptLower = customPrompt.toLowerCase();
-    
-    // Créer un programme de base si le programme original est vide
-    let modifiedProgramme = { 
-        ...originalProgramme,
-        // Données de base si le programme est vide
-        activites: originalProgramme.activites || [
-            {
-                nom: "Visite de la ville",
-                description: "Découverte des principaux sites touristiques",
-                duree: "3-4 heures",
-                prix: 25,
-                type: "tourisme"
-            },
-            {
-                nom: "Repas local",
-                description: "Dégustation de spécialités locales",
-                duree: "1-2 heures",
-                prix: 35,
-                type: "gastronomie"
-            }
-        ],
-        restaurants: originalProgramme.restaurants || [
-            {
-                nom: "Restaurant traditionnel",
-                description: "Cuisine locale authentique",
-                prix: 40,
-                type: "traditionnel"
-            }
-        ],
-        budget: originalProgramme.budget || budget || 500
-    };
-    
-    // Modifications basées sur le prompt
-    if (promptLower.includes('plage') || promptLower.includes('beach')) {
-        modifiedProgramme.activites = modifiedProgramme.activites || [];
-        modifiedProgramme.activites.push({
-            nom: "Journée à la plage",
-            description: "Détente et baignade",
-            duree: "1 journée",
-            prix: 0,
-            type: "détente"
-        });
-    }
-    
-    // Gestion du budget
-    if (promptLower.includes('budget')) {
-        // Chercher un montant spécifique (ex: "budget à 800€", "budget 800", "800€")
-        const budgetMatch = customPrompt.match(/(\d+)\s*€?/);
-        if (budgetMatch) {
-            const newBudget = parseInt(budgetMatch[1]);
-            const oldBudget = modifiedProgramme.budget || budget;
-            const ratio = newBudget / oldBudget;
-            
-            modifiedProgramme.budget = newBudget;
-            
-            // Ajuster les prix des activités proportionnellement
-            if (modifiedProgramme.activites) {
-                modifiedProgramme.activites = modifiedProgramme.activites.map(activite => ({
-                    ...activite,
-                    prix: Math.round(activite.prix * ratio)
-                }));
-            }
-            
-            // Ajuster les prix des restaurants
-            if (modifiedProgramme.restaurants) {
-                modifiedProgramme.restaurants = modifiedProgramme.restaurants.map(restaurant => ({
-                    ...restaurant,
-                    prix: Math.round(restaurant.prix * ratio)
-                }));
-            }
-        } else if (promptLower.includes('réduire')) {
-            const reduction = 0.8; // Réduction de 20%
-            modifiedProgramme.budget = Math.round(modifiedProgramme.budget * reduction);
-            modifiedProgramme.activites = modifiedProgramme.activites?.map(activite => ({
-                ...activite,
-                prix: Math.round(activite.prix * reduction)
-            }));
+Réponds UNIQUEMENT avec le tableau JSON modifié, sans texte supplémentaire, sans markdown, sans explications.
+`;
         }
-    }
-    
-    if (promptLower.includes('restaurant') || promptLower.includes('gastronomie')) {
-        modifiedProgramme.restaurants = modifiedProgramme.restaurants || [];
-        modifiedProgramme.restaurants.push({
-            nom: "Restaurant gastronomique",
-            description: "Expérience culinaire locale",
-            prix: 50,
-            type: "gastronomie"
-        });
-    }
-    
-    if (promptLower.includes('culture') || promptLower.includes('musée')) {
-        modifiedProgramme.activites = modifiedProgramme.activites || [];
-        modifiedProgramme.activites.push({
-            nom: "Visite culturelle",
-            description: "Découverte du patrimoine local",
-            duree: "2-3 heures",
-            prix: 15,
-            type: "culture"
-        });
-    }
 
-    // Ajouter les métadonnées de personnalisation
-    modifiedProgramme.customizations = {
-        originalPrompt: customPrompt,
-        modifications: modifications,
-        customizedAt: new Date().toISOString(),
-        aiModel: 'gpt-4-simulation',
-        changes: [
-            "Programme personnalisé selon vos demandes",
-            "Modifications appliquées avec l'IA",
-            `Budget final: ${modifiedProgramme.budget}€`,
-            `Nombre d'activités: ${modifiedProgramme.activites?.length || 0}`,
-            `Nombre de restaurants: ${modifiedProgramme.restaurants?.length || 0}`
-        ]
-    };
+        const apiKey = process.env.GOOGLE_API_KEY;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }]
+        };
 
-    return modifiedProgramme;
+        console.log("📡 Envoi de la requête à Gemini...");
+
+        const response = await axios.post(apiUrl, payload);
+
+        console.log("🌐 Réponse brute Gemini reçue");
+
+        let textResponse = response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+
+        if (!textResponse) {
+            console.error("❌ Réponse Gemini vide");
+            throw new Error("Réponse IA invalide");
+        }
+
+        // Nettoyer la réponse si elle contient des markdown code blocks
+        if (textResponse.startsWith("```json")) {
+            textResponse = textResponse.replace(/^```json\s*/i, "").replace(/```\s*$/, "").trim();
+        } else if (textResponse.startsWith("```")) {
+            textResponse = textResponse.replace(/^```\s*/, "").replace(/```\s*$/, "").trim();
+        }
+
+        // Parser le JSON
+        let newProgramme;
+        try {
+            newProgramme = JSON.parse(textResponse);
+            if (promptMode === 'day' && Array.isArray(newProgramme)) {
+                newProgramme = newProgramme[0];
+            }
+            if (promptMode === 'day' && (!newProgramme || typeof newProgramme !== 'object')) {
+                throw new Error('Réponse IA invalide (jour manquant)');
+            }
+        } catch (err) {
+            console.error("Erreur JSON Gemini :", err);
+            console.error("Réponse brute Gemini :", textResponse);
+            throw new Error("Réponse IA invalide");
+        }
+        return newProgramme;
+    } catch (error) {
+        console.error('❌ Erreur Gemini:', error.response?.data || error.message);
+        return null;
+    }
 }
 
 // POST - Personnaliser un programme favori avec l'IA
 export async function POST(request) {
     try {
         const session = await getServerSession(authOptions);
-        
+
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
 
-        const { 
-            savedProgrammeId, 
+        const {
+            savedProgrammeId,
             customPrompt,
-            modifications 
+            day
         } = await request.json();
 
         if (!savedProgrammeId || !customPrompt) {
-            return NextResponse.json({ 
-                error: 'ID du programme et prompt de personnalisation requis' 
+            return NextResponse.json({
+                error: 'ID du programme et prompt de personnalisation requis'
             }, { status: 400 });
+        }
+
+        let dayNumber = day !== undefined && day !== null ? parseInt(day, 10) : NaN;
+        if (Number.isNaN(dayNumber) || dayNumber <= 0) {
+            const extractedDay = extractDayFromPrompt(customPrompt);
+            if (!extractedDay) {
+                return NextResponse.json({
+                    error: 'Numéro de jour invalide ou introuvable dans le prompt'
+                }, { status: 400 });
+            }
+            dayNumber = extractedDay;
         }
 
         // Récupérer le programme original
@@ -213,85 +462,99 @@ export async function POST(request) {
         });
 
         if (!originalProgramme) {
-            return NextResponse.json({ 
-                error: 'Programme non trouvé' 
+            return NextResponse.json({
+                error: 'Programme non trouvé'
             }, { status: 404 });
         }
 
+        const programmeArray = ensureProgrammeArray(originalProgramme.programme);
 
-        // Appeler l'API IA pour personnaliser le programme
-        let customizedProgramme;
-        try {
-            // Essayer d'abord avec OpenAI
-            const aiResult = await callOpenAI({
-                originalProgramme: originalProgramme.programme,
-                customPrompt: customPrompt,
-                destination: originalProgramme.destinationName,
-                budget: originalProgramme.budget,
-                duration: Math.ceil((new Date(originalProgramme.endDate) - new Date(originalProgramme.startDate)) / (1000 * 60 * 60 * 24))
-            });
-
-            if (aiResult) {
-                customizedProgramme = aiResult;
-            } else {
-                // Fallback vers la simulation
-                customizedProgramme = await simulateAICustomization({
-                    originalProgramme: originalProgramme.programme,
-                    customPrompt: customPrompt,
-                    modifications: modifications,
-                    destination: originalProgramme.destinationName,
-                    budget: originalProgramme.budget,
-                    duration: Math.ceil((new Date(originalProgramme.endDate) - new Date(originalProgramme.startDate)) / (1000 * 60 * 60 * 24))
-                });
-            }
-        } catch (aiError) {
-            console.error('❌ Erreur API IA:', aiError);
-            // Fallback: créer une version modifiée basique
-            customizedProgramme = {
-                ...originalProgramme.programme,
-                customizations: {
-                    prompt: customPrompt,
-                    modifications: modifications,
-                    customizedAt: new Date().toISOString()
-                }
-            };
+        if (!programmeArray.length) {
+            return NextResponse.json({
+                error: 'Programme original vide ou invalide'
+            }, { status: 400 });
         }
 
-        // Créer le nouveau programme personnalisé avec tous les champs
+        let customizedDay;
+        try {
+            const dayToModify = prepareDayForGemini(programmeArray, dayNumber);
+
+            const aiResponse = await callGemini({
+                originalProgramme: dayToModify,
+                customPrompt,
+                metadata: {
+                    destinationName: originalProgramme.destinationName,
+                    type: originalProgramme.type,
+                    dayNumber
+                },
+                mode: 'day'
+            });
+
+            if (!aiResponse) {
+                return NextResponse.json({ error: "Réponse IA invalide" }, { status: 400 });
+            }
+
+            customizedDay = normalizeDay(aiResponse, dayNumber);
+        } catch (aiError) {
+            console.error('❌ Erreur IA lors de la personnalisation du jour:', aiError);
+            return NextResponse.json({ error: "Réponse IA invalide" }, { status: 400 });
+        }
+
+        const newProgramme = mergeCustomizedDay(programmeArray, customizedDay);
+
+        const computedBudget = newProgramme.reduce((sum, day) => {
+            if (!day) return sum;
+            const coutValue = Number(day.cout);
+            return Number.isFinite(coutValue) ? sum + coutValue : sum;
+        }, 0);
+
+        const finalBudget = computedBudget > 0 ? computedBudget : originalProgramme.budget;
+
         const customizedSavedProgramme = await prisma.savedProgramme.create({
             data: {
                 userId: session.user.id,
-                programmeId: randomUUID(), // UUID valide pour le programme personnalisé
+                programmeId: randomUUID(),
                 originalProgrammeId: originalProgramme.originalProgrammeId || originalProgramme.programmeId,
-                title: `${originalProgramme.title} (Personnalisé)`,
+                title: `${originalProgramme.title} (Personnalisé - Jour ${dayNumber})`,
                 destinationName: originalProgramme.destinationName,
                 type: originalProgramme.type,
-                budget: originalProgramme.budget,
+                budget: finalBudget,
                 startDate: originalProgramme.startDate,
                 endDate: originalProgramme.endDate,
                 voyageurs: originalProgramme.voyageurs,
-                programme: customizedProgramme,
-                // Nouveaux champs pour la personnalisation
+                programme: newProgramme,
                 isCustom: true,
                 customPrompt: customPrompt,
                 parentId: originalProgramme.id
             }
         });
 
+        console.log(`✅ Jour ${dayNumber} personnalisé pour le programme ${savedProgrammeId}`);
 
-        return NextResponse.json({ 
+        return NextResponse.json({
             success: true,
+            message: `Jour ${dayNumber} personnalisé avec succès`,
             customizedProgramme: {
                 id: customizedSavedProgramme.id,
+                programmeId: customizedSavedProgramme.programmeId,
                 title: customizedSavedProgramme.title,
+                destinationName: customizedSavedProgramme.destinationName,
+                destination: customizedSavedProgramme.destinationName,
+                type: customizedSavedProgramme.type,
+                budget: customizedSavedProgramme.budget,
+                startDate: customizedSavedProgramme.startDate,
+                endDate: customizedSavedProgramme.endDate,
+                voyageurs: customizedSavedProgramme.voyageurs,
+                isCustom: customizedSavedProgramme.isCustom,
                 customPrompt: customizedSavedProgramme.customPrompt,
                 parentId: customizedSavedProgramme.parentId,
+                originalProgrammeId: customizedSavedProgramme.originalProgrammeId,
                 programme: customizedSavedProgramme.programme
             }
         });
 
     } catch (error) {
         console.error('❌ Erreur personnalisation programme:', error);
-        return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+        return NextResponse.json({ error: 'Erreur IA : ' + error.message }, { status: 500 });
     }
 }
