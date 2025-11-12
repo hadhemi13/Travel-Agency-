@@ -1,4 +1,5 @@
 'use client'
+import { ProgramImage } from "@/components/ProgramImage";
 import { BsArrowRight, BsCheckLg, BsXLg } from "react-icons/bs";
 import { FaPlus, FaStar, FaTrophy } from "react-icons/fa";
 
@@ -50,11 +51,16 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                     {compareListings.map((item, idx) => (
                       <th scope="col" key={idx} className="p-3 align-top">
                         <div className="bg-transparent">
-                          <img
-                            src={item.image || '/assets/images/default-trip.jpg'}
-                            className="rounded-xl w-full h-auto object-cover"
-                            alt={item.name}
-                          />
+                          {/* ✅ SECTION MODIFIÉE - Remplacement de <img> par <ProgramImage> */}
+                          <div className="relative h-64 rounded-xl overflow-hidden">
+                            <ProgramImage
+                              src={item.image || ''}
+                              alt={item.name}
+                              className="rounded-xl w-full h-full object-cover"
+                            />
+                          </div>
+                          {/* ✅ FIN DE LA SECTION MODIFIÉE */}
+                          
                           <div className="px-0 pt-3 md:pt-4">
                             <span className="text-base md:text-lg font-semibold block font-['Poppins',sans-serif]">
                               <a href="#" className="text-gray-900 dark:text-white hover:text-[#6366f1] no-underline transition-colors">
