@@ -49,7 +49,7 @@ const TourCardWithCustomize = ({ tour, onDelete, onCustomize, onFavoriteChange }
             <TourCard tour={tour} onFavoriteChange={onFavoriteChange} />
 
             {/* Actions overlay */}
-            <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute top-3 right-3 flex space-x-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 {/* Bouton Personnaliser */}
                 <CustomizeButton
                     programmeId={tour.originalId || tour.programmeId || ''}

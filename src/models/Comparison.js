@@ -101,6 +101,11 @@ const ComparisonSchema = new mongoose.Schema({
     default: []
   },
 
+  optimizedProgram: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  },
+
   recommendation: {
     type: {
       recommendations: String,

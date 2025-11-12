@@ -1,7 +1,7 @@
 'use client'
 import { ProgramImage } from "@/components/ProgramImage";
 import { BsCheckLg, BsXLg } from "react-icons/bs";
-import { FaPlus, FaStar, FaTrophy } from "react-icons/fa";
+import { FaPlus, FaSave, FaStar, FaTrophy } from "react-icons/fa";
 import { useEffect, useMemo, useState } from "react";
 
 const currency = "€";
@@ -24,10 +24,14 @@ interface OurListingsProps {
 const OurListings = ({ compareListings, optimizedProgram }: OurListingsProps) => {
   const [displayedListings, setDisplayedListings] = useState<any[]>([]);
   const [hasOptimizedProgram, setHasOptimizedProgram] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setDisplayedListings(recalculateWinners(compareListings));
     setHasOptimizedProgram(false);
+    setSaveStatus('idle');
+    setSaveMessage(null);
   }, [compareListings]);
 
   const canAddOptimizedProgram = useMemo(() => {
@@ -146,6 +150,102 @@ const OurListings = ({ compareListings, optimizedProgram }: OurListingsProps) =>
     const updated = recalculateWinners([...displayedListings, optimizedProgram]);
     setDisplayedListings(updated);
     setHasOptimizedProgram(true);
+    setSaveStatus('idle');
+    setSaveMessage(null);
+  };
+
+  const handleSaveOptimizedProgram = async () => {
+    if (!optimizedProgram || !hasOptimizedProgram || saveStatus === 'saving') {
+      return;
+    }
+
+    const fallbackId =
+      optimizedProgram.programmeId ||
+      (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : null);
+
+    if (!fallbackId) {
+      setSaveStatus('error');
+      setSaveMessage("Impossible de générer un identifiant valide pour ce programme.");
+      return;
+    }
+    const dominantIndex = (optimizedProgram.origin?.dominantProgram || 1) - 1;
+    const referenceProgram = compareListings[dominantIndex] || compareListings[0];
+
+    const payload = {
+      programmeId: optimizedProgram.programmeId || optimizedProgram.id || fallbackId,
+      originalProgrammeId:
+        referenceProgram?.id ||
+        optimizedProgram.origin?.sourcePrograms?.[dominantIndex]?.id ||
+        null,
+      title: optimizedProgram.name || 'Programme optimisé',
+      destinationName:
+        optimizedProgram.destination ||
+        referenceProgram?.name?.split(' - ')[0] ||
+        'Destination inconnue',
+      type:
+        optimizedProgram.type ||
+        optimizedProgram.origin?.sourcePrograms?.[dominantIndex]?.type ||
+        'Aventure',
+      budget:
+        optimizedProgram.budget ??
+        optimizedProgram.metrics?.totalCost?.numericValue ??
+        referenceProgram?.metrics?.totalCost?.numericValue ??
+        0,
+      startDate: optimizedProgram.startDate || new Date().toISOString(),
+      endDate:
+        optimizedProgram.endDate ||
+        optimizedProgram.startDate ||
+        new Date().toISOString(),
+      voyageurs: optimizedProgram.voyageurs || 1,
+      programme:
+        optimizedProgram.rawData ||
+        optimizedProgram.programme ||
+        referenceProgram?.rawData ||
+        [],
+      imageUrl: optimizedProgram.image || referenceProgram?.image || null
+    };
+
+    if (!Array.isArray(payload.programme) || payload.programme.length === 0) {
+      setSaveStatus('error');
+      setSaveMessage('Impossible de sauvegarder : le programme est vide.');
+      return;
+    }
+
+    setSaveStatus('saving');
+    setSaveMessage(null);
+
+    try {
+      const response = await fetch('/api/saved-programmes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          setSaveStatus('error');
+          setSaveMessage('Veuillez vous connecter pour sauvegarder ce programme.');
+        } else if (response.status === 409 || data?.alreadySaved) {
+          setSaveStatus('error');
+          setSaveMessage('Ce programme est déjà sauvegardé dans vos favoris.');
+        } else {
+          setSaveStatus('error');
+          setSaveMessage(data?.error || 'Erreur lors de la sauvegarde du programme.');
+        }
+        return;
+      }
+
+      setSaveStatus('success');
+      setSaveMessage('Programme optimisé sauvegardé avec succès !');
+    } catch (error: any) {
+      console.error('❌ Erreur sauvegarde programme optimisé:', error);
+      setSaveStatus('error');
+      setSaveMessage(error?.message || 'Erreur inattendue lors de la sauvegarde.');
+    }
   };
 
   return (
@@ -163,15 +263,23 @@ const OurListings = ({ compareListings, optimizedProgram }: OurListingsProps) =>
                       </p>
                     </th>
                     {displayedListings.map((item, idx) => (
-                      <th scope="col" key={idx} className="p-3 align-top">
+                      <th
+                        scope="col"
+                        key={idx}
+                        className="p-3 align-top min-w-[180px] max-w-[260px]"
+                      >
                         <div className="bg-transparent">
-                          {/* ✅ SECTION MODIFIÉE - Remplacement de <img> par <ProgramImage> */}
-                          <div className="relative h-64 rounded-xl overflow-hidden">
+                          <div className="relative w-full aspect-[3/4] sm:aspect-[4/5] md:aspect-[3/4] lg:aspect-[4/3] rounded-2xl overflow-hidden bg-[#1f2125] border border-[#2a2d39]">
                             <ProgramImage
                               src={item.image || ''}
                               alt={item.name}
-                              className="rounded-xl w-full h-full object-cover"
+                              className="absolute inset-0 w-full h-full object-cover"
                             />
+                            {!item.image && (
+                              <span className="absolute inset-0 flex items-center justify-center text-sm font-medium text-[#b0b0b8]">
+                                Image indisponible
+                              </span>
+                            )}
                           </div>
                           {/* ✅ FIN DE LA SECTION MODIFIÉE */}
 
@@ -509,6 +617,38 @@ const OurListings = ({ compareListings, optimizedProgram }: OurListingsProps) =>
                 <p className="text-sm text-gray-600 dark:text-gray-400 text-center max-w-xl">
                   Combinez automatiquement les meilleurs critères (budget, activités, diversité et hébergement) pour créer un troisième programme basé sur vos comparaisons actuelles.
                 </p>
+
+                {hasOptimizedProgram && (
+                  <div className="flex flex-col items-center gap-2 mt-2">
+                    <button
+                      onClick={handleSaveOptimizedProgram}
+                      className={`inline-flex items-center gap-3 px-6 py-3 rounded-2xl font-semibold transition-all shadow-lg ${saveStatus === 'success'
+                        ? 'bg-emerald-600 text-white'
+                        : saveStatus === 'saving'
+                          ? 'bg-blue-500 text-white cursor-wait'
+                          : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white'
+                        }`}
+                      disabled={saveStatus === 'saving' || saveStatus === 'success'}
+                    >
+                      <FaSave className="text-lg" />
+                      {saveStatus === 'success'
+                        ? 'Programme sauvegardé'
+                        : saveStatus === 'saving'
+                          ? 'Sauvegarde en cours...'
+                          : 'Sauvegarder le programme optimisé'}
+                    </button>
+                    {saveMessage && (
+                      <p
+                        className={`text-sm text-center ${saveStatus === 'success'
+                          ? 'text-emerald-500'
+                          : 'text-red-500'
+                          }`}
+                      >
+                        {saveMessage}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>

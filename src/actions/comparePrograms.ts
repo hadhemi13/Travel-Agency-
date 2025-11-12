@@ -5,6 +5,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import connectToDatabase from '@/lib/db';
 import Comparison from '@/models/Comparison';
 import { generateComparisonImage } from '@/lib/imageGenerator';
+import { randomUUID } from 'crypto';
 
 interface ProgramData {
   supabaseId: string | null;
@@ -371,6 +372,26 @@ function pickBestMetric(
   return { metric: selected, winner };
 }
 
+function generateOptimizedId() {
+  try {
+    if (typeof randomUUID === 'function') {
+      return randomUUID();
+    }
+  } catch (error) {
+    console.warn('⚠️ randomUUID indisponible, fallback ID.', error);
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
+    const rand = (Math.random() * 16) | 0;
+    const value = char === 'x' ? rand : (rand & 0x3) | 0x8;
+    return value.toString(16);
+  });
+}
+
+function deepClone<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value));
+}
+
 function createOptimizedProgram(
   program1Data: ProgramData,
   program2Data: ProgramData,
@@ -414,7 +435,6 @@ function createOptimizedProgram(
   const baseCategories = dominantProgram === 1 ? categories1 : categories2;
   const baseData = dominantProgram === 1 ? program1Data : program2Data;
   const baseImage = dominantProgram === 1 ? program1Image : program2Image;
-
   const mergedCategories = Object.keys({
     ...categories1,
     ...categories2
@@ -441,18 +461,40 @@ function createOptimizedProgram(
       : cloneMetric(baseMetrics.valueForMoney)
   };
 
+  const optimizedId = generateOptimizedId();
+  const rawDataClone = Array.isArray(baseData.programme) ? deepClone(baseData.programme) : [];
+
   const optimizedProgram = {
-    id: null,
+    id: optimizedId,
+    programmeId: optimizedId,
     name: `${baseData.destination} - Programme optimisé`,
+    destination: baseData.destination,
+    type: baseData.type,
+    budget: baseData.budget,
+    startDate: baseData.startDate,
+    endDate: baseData.endDate,
+    voyageurs: baseData.voyageurs,
     image: baseImage,
     totalCost: metrics.totalCost.numericValue ?? baseMetrics.totalCost.numericValue,
     numberOfDays: metrics.numberOfDays.numericValue ?? baseMetrics.numberOfDays.numericValue,
-    rawData: baseData.programme,
+    rawData: rawDataClone,
     metrics,
     categories: mergedCategories,
     origin: {
       dominantProgram,
-      winnerCount
+      winnerCount,
+      sourcePrograms: [
+        {
+          id: program1Data.supabaseId,
+          destination: program1Data.destination,
+          type: program1Data.type
+        },
+        {
+          id: program2Data.supabaseId,
+          destination: program2Data.destination,
+          type: program2Data.type
+        }
+      ]
     }
   };
 

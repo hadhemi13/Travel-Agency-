@@ -8,7 +8,6 @@ import { useTranslation } from '@/hooks/useTranslation'
 import { useSession, signOut } from 'next-auth/react'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import {
-    BsBell,
     BsBookmarkCheck,
     BsChevronDown,
     BsGear,
@@ -26,14 +25,12 @@ const TopNavBar = () => {
     const { t } = useTranslation()
     const { data: session } = useSession()
     const { user } = useUserProfile()
-    const [notificationOpen, setNotificationOpen] = useState(false)
     const [profileOpen, setProfileOpen] = useState(false)
     const [favoritesOpen, setFavoritesOpen] = useState(false)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [scrollY, setScrollY] = useState(0)
     const pathname = usePathname()
 
-    const notificationRef = useRef<HTMLDivElement>(null)
     const profileRef = useRef<HTMLDivElement>(null)
     const favoritesRef = useRef<HTMLDivElement>(null)
 
@@ -47,9 +44,6 @@ const TopNavBar = () => {
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
-                setNotificationOpen(false)
-            }
             if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
                 setProfileOpen(false)
             }
@@ -181,64 +175,6 @@ const TopNavBar = () => {
 
                     {/* Actions de droite */}
                     <div className="flex items-center gap-3">
-                        {/* Notifications */}
-                        <div className="relative" ref={notificationRef}>
-                            <button
-                                onClick={() => setNotificationOpen(!notificationOpen)}
-                                className="relative p-2.5 text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31] rounded-xl transition-all duration-300 hover:scale-105"
-                                aria-label={t('nav.notifications')}
-                            >
-                                <BsBell className="text-xl" />
-                                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse ring-2 ring-red-500/30" />
-                            </button>
-
-                            {/* Dropdown Notifications */}
-                            {notificationOpen && (
-                                <div className="absolute right-0 mt-3 w-96 bg-white dark:bg-[#222529] rounded-2xl shadow-2xl dark:shadow-[0_1rem_3rem_rgba(0,0,0,0.5)] border border-gray-200 dark:border-[rgba(255,255,255,0.07)] animate-fadeIn overflow-hidden backdrop-blur-lg">
-                                    <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-[rgba(255,255,255,0.07)] bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-[#2a2c31] dark:to-[#2a2c31]">
-                                        <h6 className="font-bold text-gray-900 dark:text-white text-base flex items-center gap-2">
-                                            <BsBell className="text-blue-600 dark:text-[#8e85e6]" />
-                                            {t('nav.notifications')}
-                                            <span className="ml-2 px-3 py-1 text-xs bg-red-500 text-white rounded-full font-semibold shadow-lg">
-                                                {notificationData.length}
-                                            </span>
-                                        </h6>
-                                        <Link href="#" className="text-sm text-blue-600 hover:text-blue-700 dark:text-[#8e85e6] dark:hover:text-[#7a6deb] font-semibold hover:underline transition-all">
-                                            Effacer
-                                        </Link>
-                                    </div>
-
-                                    <div className="max-h-96 overflow-y-auto p-3 space-y-2">
-                                        {notificationData.map((notification, idx) => (
-                                            <div
-                                                key={idx}
-                                                className={`p-4 rounded-xl hover:bg-gray-100 dark:hover:bg-[#2a2c31] transition-all duration-300 cursor-pointer border-l-4 ${idx === 0 ? 'bg-blue-50 dark:bg-[#8e85e6]/10 border-blue-500 dark:border-[#8e85e6]' : 'bg-white dark:bg-[#191b1d] border-transparent hover:border-blue-300 dark:hover:border-[#8e85e6]'
-                                                    } shadow-sm hover:shadow-md`}
-                                            >
-                                                <h6 className="text-sm font-bold text-gray-900 dark:text-white mb-1.5">
-                                                    {notification.title}
-                                                </h6>
-                                                {notification.content && (
-                                                    <p className="text-xs text-gray-600 dark:text-[#b0b0b8] mb-2 leading-relaxed">{notification.content}</p>
-                                                )}
-                                                <span className="text-xs text-gray-500 dark:text-[#a1a1a8] font-medium">{notification.time}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div className="p-4 border-t border-gray-200 dark:border-[rgba(255,255,255,0.07)] text-center bg-gray-50 dark:bg-[#191b1d]">
-                                        <Link
-                                            href="#"
-                                            className="text-sm text-blue-600 hover:text-blue-700 dark:text-[#8e85e6] dark:hover:text-[#7a6deb] font-bold hover:underline transition-all inline-flex items-center gap-2"
-                                        >
-                                            Voir toutes les activités
-                                            <span className="text-lg">→</span>
-                                        </Link>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
                         {/* Profile Dropdown or Login Button */}
                         {session ? (
                             <div className="relative" ref={profileRef}>
@@ -400,12 +336,6 @@ const TopNavBar = () => {
                             {/* Menu Links Mobile */}
                             <div>
                                 <p className="text-xs text-[#a1a1a8] mb-3 px-3 font-bold uppercase tracking-wider">{t('nav.menu')}</p>
-                                <Link
-                                    href="/comparateur"
-                                    className={`block px-5 py-3.5 font-medium rounded-xl transition-all duration-300 ${pathname === '/comparateur' ? 'text-white bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] shadow-lg' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
-                                >
-                                    Comparateur
-                                </Link>
                                 {/* Favoris Mobile */}
                                 <div className="px-5 py-3.5">
                                     <p className="text-sm font-semibold text-[#8e85e6] mb-2">Favoris</p>
@@ -431,22 +361,10 @@ const TopNavBar = () => {
                                     Historique
                                 </Link>
                                 <Link
-                                    href="/hotels"
-                                    className={`block px-5 py-3.5 font-medium rounded-xl transition-all duration-300 ${pathname === '/hotels' ? 'text-white bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] shadow-lg' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
-                                >
-                                    Hotels
-                                </Link>
-                                <Link
                                     href="/user-profile/profile"
                                     className={`block px-5 py-3.5 font-medium rounded-xl transition-all duration-300 ${pathname === '/user-profile/profile' ? 'text-white bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] shadow-lg' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
                                 >
                                     Profile
-                                </Link>
-                                <Link
-                                    href="/reservations"
-                                    className={`block px-5 py-3.5 font-medium rounded-xl transition-all duration-300 ${pathname === '/reservations' ? 'text-white bg-gradient-to-r from-[#8e85e6] to-[#7a6deb] shadow-lg' : 'text-[#b0b0b8] hover:text-white hover:bg-[#2a2c31]'}`}
-                                >
-                                    Réservation
                                 </Link>
                                 <Link
                                     href="/generate-trip"
