@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import TopNavBar from "@/components/TopNav/TopNavBar";
 import Footer from "@/components/Footer";
@@ -17,6 +17,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 function CheckoutForm({ amount }: { amount: string | null }) {
     const stripe = useStripe();
     const elements = useElements();
+    const router = useRouter();
     const [processing, setProcessing] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
     const [popupMessage, setPopupMessage] = useState("");
@@ -32,7 +33,6 @@ function CheckoutForm({ amount }: { amount: string | null }) {
 
         (async () => {
             try {
-                // Arrondi le montant à 2 décimales avant de l'envoyer
                 const formattedAmount = Number(amount).toFixed(2);
 
                 const res = await fetch("/api/payment-intent", {
@@ -40,6 +40,7 @@ function CheckoutForm({ amount }: { amount: string | null }) {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ amount: formattedAmount }),
                 });
+
                 const data = await res.json();
                 if (data.clientSecret) {
                     setClientSecret(data.clientSecret);
@@ -104,7 +105,6 @@ function CheckoutForm({ amount }: { amount: string | null }) {
     return (
         <main className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-[#0f1115] dark:via-[#1a1d23] dark:to-[#222529] py-12 px-4 transition-all duration-300">
             <div className="max-w-2xl mx-auto mt-24">
-                {/* En-tête avec icône */}
                 <div className="text-center mb-8 animate-fade-in">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#8e85e6] to-[#6b5dd3] rounded-2xl shadow-lg mb-4">
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,9 +119,7 @@ function CheckoutForm({ amount }: { amount: string | null }) {
                     </p>
                 </div>
 
-                {/* Carte principale */}
                 <div className="bg-white dark:bg-[#1a1d23] rounded-3xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-800 transition-all duration-300">
-                    {/* Montant */}
                     <div className="bg-gradient-to-r from-[#8e85e6] to-[#6b5dd3] p-8 text-center">
                         <p className="text-white/80 text-sm font-medium mb-2 uppercase tracking-wider">
                             Montant à payer
@@ -137,7 +135,6 @@ function CheckoutForm({ amount }: { amount: string | null }) {
                         </div>
                     </div>
 
-                    {/* Formulaire */}
                     <div className="p-8">
                         {isLoading ? (
                             <div className="flex flex-col items-center justify-center py-12">
@@ -162,14 +159,8 @@ function CheckoutForm({ amount }: { amount: string | null }) {
                                                         fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system",
                                                         iconColor: "#ffffff",
                                                     },
-                                                    invalid: {
-                                                        color: "#ef4444",
-                                                        iconColor: "#ef4444"
-                                                    },
-                                                    complete: {
-                                                        color: "#ffffff",
-                                                        iconColor: "#10b981"
-                                                    }
+                                                    invalid: { color: "#ef4444", iconColor: "#ef4444" },
+                                                    complete: { color: "#ffffff", iconColor: "#10b981" }
                                                 },
                                             }}
                                         />
@@ -203,7 +194,6 @@ function CheckoutForm({ amount }: { amount: string | null }) {
                                     )}
                                 </button>
 
-                                {/* Badges de sécurité */}
                                 <div className="flex items-center justify-center gap-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                                     <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                                         <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -228,11 +218,9 @@ function CheckoutForm({ amount }: { amount: string | null }) {
                 </div>
             </div>
 
-            {/* Popup améliorée */}
             {showPopup && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
                     <div className="bg-white dark:bg-[#1a1d23] rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden border border-gray-200 dark:border-gray-700 animate-scale-in">
-                        {/* En-tête colorée selon le type */}
                         <div className={`p-6 ${popupType === "success" ? "bg-gradient-to-r from-green-500 to-emerald-500" : "bg-gradient-to-r from-red-500 to-rose-500"}`}>
                             <div className="flex items-center justify-center w-16 h-16 mx-auto bg-white/20 rounded-full mb-4">
                                 {popupType === "success" ? (
@@ -250,13 +238,12 @@ function CheckoutForm({ amount }: { amount: string | null }) {
                             </h3>
                         </div>
 
-                        {/* Contenu */}
                         <div className="p-6">
                             <p className="text-gray-700 dark:text-gray-300 text-center mb-6">
                                 {popupMessage}
                             </p>
                             <button
-                                onClick={() => setShowPopup(false)}
+                                onClick={() => router.push("/")}
                                 className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 ${
                                     popupType === "success"
                                         ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
@@ -272,32 +259,15 @@ function CheckoutForm({ amount }: { amount: string | null }) {
 
             <style jsx>{`
                 @keyframes fade-in {
-                    from {
-                        opacity: 0;
-                    }
-                    to {
-                        opacity: 1;
-                    }
+                    from { opacity: 0; }
+                    to { opacity: 1; }
                 }
-
                 @keyframes scale-in {
-                    from {
-                        transform: scale(0.9);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: scale(1);
-                        opacity: 1;
-                    }
+                    from { transform: scale(0.9); opacity: 0; }
+                    to { transform: scale(1); opacity: 1; }
                 }
-
-                .animate-fade-in {
-                    animation: fade-in 0.3s ease-out;
-                }
-
-                .animate-scale-in {
-                    animation: scale-in 0.3s ease-out;
-                }
+                .animate-fade-in { animation: fade-in 0.3s ease-out; }
+                .animate-scale-in { animation: scale-in 0.3s ease-out; }
             `}</style>
         </main>
     );
