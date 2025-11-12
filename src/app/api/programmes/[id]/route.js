@@ -36,6 +36,7 @@ export async function GET(request, { params }) {
             endDate: programme.endDate,
             voyageurs: programme.voyageurs,
             programme: programme.programme,
+            imageUrl: programme.imageUrl,
             isDone: programme.isDone,
             createdAt: programme.createdAt,
             duration: Math.ceil((new Date(programme.endDate) - new Date(programme.startDate)) / (1000 * 60 * 60 * 24)),

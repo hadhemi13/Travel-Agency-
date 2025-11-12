@@ -386,6 +386,7 @@ model ProgrammesVoyage {
   endDate         DateTime    @map("end_date") @db.Timestamptz(6)
   voyageurs       Int
   programme       Json        @db.JsonB
+  imageUrl        String?     @map("image_url") @db.Text
   isDone          Boolean     @default(false) @map("is_done")
   createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
   categoriesActivites Json?       @map("categories_activites") @db.JsonB
@@ -414,10 +415,12 @@ model SavedProgramme {
   endDate               DateTime          @map("end_date") @db.Timestamptz(6)
   voyageurs             Int
   programme             Json              @db.JsonB
+  imageUrl        String?     @map("image_url") @db.Text
   savedAt               DateTime          @default(now()) @map("saved_at") @db.Timestamptz(6)
   isCustom        Boolean  @default(false) @map("is_custom")                 // ✅ ajouté
   customPrompt    String?  @map("custom_prompt")            // ✅ ajouté
   parentId        String?  @map("parent_id")                // si besoin garder la trace du programme source
+  
   
   // Relations
   user                  User              @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -4,6 +4,7 @@ import { AuthOptions, getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import connectToDatabase from '@/lib/db';
 import Comparison from '@/models/Comparison';
+import { generateComparisonImage } from '@/lib/imageGenerator';
 
 interface ProgramData {
   supabaseId: string | null;
@@ -335,7 +336,30 @@ export async function comparePrograms(
     console.log('🏷️ Extraction des catégories...');
     const program1Categories = extractCategories(program1Data.programme);
     const program2Categories = extractCategories(program2Data.programme);
+ console.log('🎨 Génération des images...');
 
+// ✅ PASSER 1 pour le premier programme
+const program1Image = generateComparisonImage(
+  program1Data.destination,
+  program1Data.type,
+  program1Metrics,
+  program1Categories,
+  1 // ✅ Premier programme
+);
+
+// ✅ PASSER 2 pour le deuxième programme
+const program2Image = generateComparisonImage(
+  program2Data.destination,
+  program2Data.type,
+  program2Metrics,
+  program2Categories,
+  2 // ✅ Deuxième programme
+);
+
+console.log('✅ Images générées:', {
+  program1: program1Image,
+  program2: program2Image
+});
     // 5. 🔴 NOUVEAU : Générer la recommandation intelligente
     console.log('🤖 Génération de la recommandation...');
     const smartRecommendation = generateSmartRecommendation(
@@ -353,8 +377,9 @@ export async function comparePrograms(
       {
         id: program1Data.supabaseId,
         name: `${program1Data.destination} - Programme 1`,
-        image: '/assets/images/default-trip.jpg',
-        totalCost: program1Metrics.totalCost.numericValue,
+
+   image: program1Image,
+           totalCost: program1Metrics.totalCost.numericValue,
         numberOfDays: program1Metrics.numberOfDays.numericValue,
         rawData: program1Data.programme,
         metrics: program1Metrics,
@@ -363,7 +388,7 @@ export async function comparePrograms(
       {
         id: program2Data.supabaseId,
         name: `${program2Data.destination} - Programme 2`,
-        image: '/assets/images/default-trip.jpg',
+         image: program2Image,
         totalCost: program2Metrics.totalCost.numericValue,
         numberOfDays: program2Metrics.numberOfDays.numericValue,
         rawData: program2Data.programme,

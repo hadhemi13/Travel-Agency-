@@ -42,6 +42,7 @@ export async function GET() {
             endDate: programme.endDate,
             voyageurs: programme.voyageurs,
             programme: programme.programme,
+            imageUrl: programme.imageUrl,
             isDone: false, // Les programmes sauvegardés ne sont pas "terminés"
             isFavorite: true, // Tous les programmes sauvegardés sont des favoris
             createdAt: programme.savedAt,
@@ -122,7 +123,8 @@ export async function POST(request) {
                     startDate: new Date(programmeData.startDate),
                     endDate: new Date(programmeData.endDate),
                     voyageurs: programmeData.voyageurs,
-                    programme: programmeData.programme || {}
+                    programme: programmeData.programme || {},
+                    imageUrl: programmeData.imageUrl || null
                 }
             });
 

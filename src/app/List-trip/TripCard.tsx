@@ -1,9 +1,11 @@
 'use client';
-import Image from 'next/image';
+
 import { useState, useEffect } from 'react';
 import { PlaceType } from './Type';
-import { FaMapMarkerAlt, FaPhone, FaArrowRight, FaHeart, FaCheck, FaClock } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaPhone, FaCheck, FaClock, FaHeart } from 'react-icons/fa';
 import { BsBuilding } from 'react-icons/bs';
+import { ProgramImage } from '@/components/ProgramImage';
+import { generateTravelImageUrl, preloadImage } from '@/lib/imageGenerator';
 
 interface TripCardProps {
     place: PlaceType;
@@ -14,61 +16,52 @@ interface TripCardProps {
 
 const TripCard = ({ place, programmeId, onStatusChange, onFavoriteChange }: TripCardProps) => {
     const { name, image, category, open, address, phoneNo } = place;
-    const [isDone, setIsDone] = useState(!open); // open=false signifie isDone=true
+
+    const [isDone, setIsDone] = useState(!open);
     const [isUpdating, setIsUpdating] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
     const [isFavoriteUpdating, setIsFavoriteUpdating] = useState(false);
+    const [imageUrl, setImageUrl] = useState<string>(typeof image === 'string' ? image : '');
 
-    // Vérifier si le programme est déjà en favoris au chargement
+    // 🧠 Génération automatique de l’image selon la destination
     useEffect(() => {
-        if (programmeId) {
-            checkIfFavorite();
-        }
-    }, [programmeId]);
-
-    const checkIfFavorite = async () => {
-        if (!programmeId) {
-            console.warn('⚠️ Aucun programmeId fourni pour vérifier les favoris');
+        if (typeof image === 'string' && image.length > 0 && !image.startsWith('blob:')) {
+            setImageUrl(image);
             return;
         }
 
+        const generatedUrl = generateTravelImageUrl(name, category?.name || 'Voyage');
+        setImageUrl(generatedUrl);
+        preloadImage(generatedUrl);
+    }, [image, name, category?.name]);
+
+    // 🔎 Vérification des favoris
+    useEffect(() => {
+        if (programmeId) checkIfFavorite();
+    }, [programmeId]);
+
+    const checkIfFavorite = async () => {
+        if (!programmeId) return;
         try {
             const response = await fetch('/api/favorites', {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                // Ajouter un timeout pour éviter les requêtes qui traînent
-                signal: AbortSignal.timeout(5000)
+                headers: { 'Content-Type': 'application/json' },
+                signal: AbortSignal.timeout(5000),
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
 
             if (data.favorites && Array.isArray(data.favorites)) {
-                const isAlreadyFavorite = data.favorites.some((fav: any) => fav.programmeId === programmeId);
+                const isAlreadyFavorite = data.favorites.some(
+                    (fav: any) => fav.programmeId === programmeId
+                );
                 setIsFavorite(isAlreadyFavorite);
-                console.log(`🔍 Programme ${programmeId} ${isAlreadyFavorite ? 'est' : 'n\'est pas'} en favoris`);
             } else {
-                console.warn('⚠️ Format de réponse invalide pour les favoris:', data);
                 setIsFavorite(false);
             }
         } catch (error) {
-            if (error instanceof Error) {
-                if (error.name === 'AbortError') {
-                    console.warn('⏰ Timeout lors de la vérification des favoris');
-                } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    console.warn('🌐 Erreur de connexion lors de la vérification des favoris');
-                } else {
-                    console.error('❌ Erreur lors de la vérification des favoris:', error);
-                }
-            } else {
-                console.error('❌ Erreur lors de la vérification des favoris:', error);
-            }
-            // En cas d'erreur, on assume que ce n'est pas un favori
+            console.warn('⚠️ Erreur lors de la vérification des favoris:', error);
             setIsFavorite(false);
         }
     };
@@ -82,19 +75,13 @@ const TripCard = ({ place, programmeId, onStatusChange, onFavoriteChange }: Trip
         try {
             const response = await fetch(`/api/programmes/${programmeId}/status`, {
                 method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ isDone: newStatus }),
             });
 
             if (response.ok) {
                 setIsDone(newStatus);
-                if (onStatusChange) {
-                    onStatusChange(programmeId, newStatus);
-                }
-            } else {
-                console.error('Erreur lors de la mise à jour du statut');
+                onStatusChange?.(programmeId, newStatus);
             }
         } catch (error) {
             console.error('Erreur:', error);
@@ -105,28 +92,18 @@ const TripCard = ({ place, programmeId, onStatusChange, onFavoriteChange }: Trip
 
     const getProgrammeDetails = async () => {
         if (!programmeId) return null;
-        const urls = [
-            `/api/programmes/${programmeId}`,
-            `/api/saved-programmes/${programmeId}`
-        ];
+        const urls = [`/api/programmes/${programmeId}`, `/api/saved-programmes/${programmeId}`];
 
         for (const url of urls) {
             try {
                 const res = await fetch(url);
                 if (!res.ok) continue;
                 const data = await res.json();
-                const programme = data?.programme;
-                if (programme) {
-                    return programme;
-                }
-                if (data?.programme?.programme) {
-                    return data.programme.programme;
-                }
+                return data?.programme?.programme || data?.programme || null;
             } catch (error) {
-                console.warn(`⚠️ Impossible de récupérer le programme via ${url}`, error);
+                console.warn(`⚠️ Erreur récupération programme via ${url}`, error);
             }
         }
-
         return null;
     };
 
@@ -142,71 +119,87 @@ const TripCard = ({ place, programmeId, onStatusChange, onFavoriteChange }: Trip
             if (newFavoriteStatus) {
                 const programmeDetails = await getProgrammeDetails();
                 if (!programmeDetails) {
-                    alert('❌ Impossible de récupérer le programme complet. Réessayez plus tard.');
-                    setIsFavoriteUpdating(false);
-                    return;
-                }
-
-                const baseProgramme = Array.isArray(programmeDetails?.programme)
-                    ? programmeDetails.programme
-                    : Array.isArray(programmeDetails)
-                        ? programmeDetails
-                        : Array.isArray(programmeDetails?.programme?.programme)
-                            ? programmeDetails.programme.programme
-                            : programmeDetails?.programme || [];
-
-                if (!Array.isArray(baseProgramme) || baseProgramme.length === 0) {
-                    alert('❌ Programme vide. Impossible d’ajouter aux favoris.');
+                    alert('❌ Impossible de récupérer le programme complet.');
                     setIsFavoriteUpdating(false);
                     return;
                 }
 
                 const meta = Array.isArray(programmeDetails) ? {} : programmeDetails;
+                const programmeSteps =
+                    Array.isArray(programmeDetails)
+                        ? programmeDetails
+                        : Array.isArray(meta?.programme)
+                            ? meta.programme
+                            : Array.isArray(meta?.programme?.programme)
+                                ? meta.programme.programme
+                                : [];
+
+                if (!Array.isArray(programmeSteps) || programmeSteps.length === 0) {
+                    alert('❌ Programme vide. Impossible d’ajouter aux favoris.');
+                    setIsFavoriteUpdating(false);
+                    return;
+                }
+
+                const destinationName =
+                    meta.destination ||
+                    meta.destinationName ||
+                    place?.name?.split(' - ')[0] ||
+                    name;
+
+                const budgetValue =
+                    typeof meta.budget === 'number'
+                        ? meta.budget
+                        : typeof place.price === 'number'
+                            ? place.price
+                            : 0;
+
+                const startDateIso = meta.startDate
+                    ? new Date(meta.startDate).toISOString()
+                    : new Date().toISOString();
+
+                const endDateIso = meta.endDate
+                    ? new Date(meta.endDate).toISOString()
+                    : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+                const voyageursCount =
+                    typeof meta.voyageurs === 'number' && !Number.isNaN(meta.voyageurs)
+                        ? meta.voyageurs
+                        : 1;
 
                 programmePayload = {
-                    title: name,
-                    destinationName: meta.destination || place.address || name,
-                    type: meta.type || category.name,
-                    budget: meta.budget || place.price || 0,
-                    startDate: meta.startDate || new Date().toISOString(),
-                    endDate:
-                        meta.endDate ||
-                        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-                    voyageurs: meta.voyageurs || 1,
-                    programme: baseProgramme,
-                    originalProgrammeId: meta.originalProgrammeId || meta.programmeId || null
+                    title: meta.name || name,
+                    destinationName,
+                    type: meta.type || category?.name || 'Voyage',
+                    budget: budgetValue,
+                    startDate: startDateIso,
+                    endDate: endDateIso,
+                    voyageurs: voyageursCount,
+                    programme: programmeSteps,
+                    originalProgrammeId: meta.originalProgrammeId || meta.programmeId || programmeId,
+                    imageUrl: imageUrl,
                 };
             }
 
             const response = await fetch('/api/favorites', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    programmeId: programmeId,
+                    programmeId,
                     isFavorite: newFavoriteStatus,
-                    programmeData: programmePayload
+                    programmeData: programmePayload,
                 }),
             });
 
             if (response.ok) {
-                const data = await response.json();
                 setIsFavorite(newFavoriteStatus);
-                if (onFavoriteChange) {
-                    onFavoriteChange(programmeId, newFavoriteStatus);
-                }
-                console.log('✅ Favori mis à jour avec succès:', data);
+                onFavoriteChange?.(programmeId, newFavoriteStatus);
             } else {
-                const errorData = await response.json();
-                console.error('❌ Erreur lors de la mise à jour des favoris:', errorData);
-                // Afficher un message d'erreur plus informatif
-                const errorMessage = errorData.details || errorData.error || 'Impossible de mettre à jour les favoris';
-                alert(`Erreur: ${errorMessage}`);
+                const err = await response.json();
+                alert(`Erreur: ${err.message || 'Impossible de mettre à jour les favoris.'}`);
             }
         } catch (error) {
             console.error('❌ Erreur réseau:', error);
-            alert('Erreur de connexion. Veuillez réessayer.');
+            alert('Erreur de connexion.');
         } finally {
             setIsFavoriteUpdating(false);
         }
@@ -216,23 +209,23 @@ const TripCard = ({ place, programmeId, onStatusChange, onFavoriteChange }: Trip
         <div className="bg-gray-800 dark:bg-[#2a2c31] rounded-xl shadow-lg overflow-hidden h-full flex flex-col">
             {/* Image Section */}
             <div className="relative h-48 overflow-hidden">
-                <Image
-                    src={image}
+                <ProgramImage
+                    src={imageUrl}
                     alt={name}
-                    width={500}
-                    height={300}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover rounded-t-xl"
                 />
 
                 {/* Badges */}
                 <div className="absolute top-3 left-3 flex space-x-2">
-                    {/* Category Badge */}
-                    <span className="flex items-center px-3 py-1 bg-black text-white text-sm font-semibold rounded-full">
-                        <BsBuilding className="mr-1 text-yellow-400" /> {category.name}
-                    </span>
-                    {/* Status Badge */}
-                    <span className={`px-3 py-1 text-white text-sm font-semibold rounded-full ${open ? 'bg-green-600' : 'bg-red-600'
-                        }`}>
+                    {category?.name && (
+                        <span className="flex items-center px-3 py-1 bg-black/80 text-white text-sm font-semibold rounded-full">
+                            <BsBuilding className="mr-1 text-yellow-400" /> {category.name}
+                        </span>
+                    )}
+                    <span
+                        className={`px-3 py-1 text-white text-sm font-semibold rounded-full ${open ? 'bg-green-600' : 'bg-red-600'
+                            }`}
+                    >
                         {open ? 'Open' : 'Closed'}
                     </span>
                 </div>
@@ -240,29 +233,23 @@ const TripCard = ({ place, programmeId, onStatusChange, onFavoriteChange }: Trip
 
             {/* Content Section */}
             <div className="p-4 flex flex-col flex-grow text-white">
-                {/* Title */}
-                <h3 className="text-xl font-bold mb-2 leading-tight text-white">
-                    {name}
-                </h3>
+                <h3 className="text-xl font-bold mb-2 leading-tight">{name}</h3>
 
-                {/* Address */}
                 {address && (
                     <p className="flex items-center text-gray-300 text-sm mb-1">
                         <FaMapMarkerAlt className="mr-2 text-gray-400" /> {address}
                     </p>
                 )}
 
-                {/* Phone */}
                 {phoneNo && (
                     <p className="flex items-center text-gray-300 text-sm mb-4">
                         <FaPhone className="mr-2 text-gray-400" /> {phoneNo}
                     </p>
                 )}
 
-                {/* Action Row */}
+                {/* Action Buttons */}
                 <div className="flex items-center justify-end mt-auto pt-4 border-t border-gray-600">
                     <div className="flex items-center gap-3">
-                        {/* Bouton Mark as Done */}
                         {programmeId && (
                             <button
                                 onClick={handleStatusToggle}
@@ -276,8 +263,7 @@ const TripCard = ({ place, programmeId, onStatusChange, onFavoriteChange }: Trip
                                     <FaClock className="animate-spin" />
                                 ) : isDone ? (
                                     <>
-                                        <FaCheck />
-                                        ✅ Done
+                                        <FaCheck /> Done
                                     </>
                                 ) : (
                                     'Mark as Done'
@@ -288,7 +274,10 @@ const TripCard = ({ place, programmeId, onStatusChange, onFavoriteChange }: Trip
                         <button
                             onClick={handleFavoriteToggle}
                             disabled={isFavoriteUpdating}
-                            className={`transition-colors ${isFavoriteUpdating ? 'opacity-50 cursor-not-allowed' : ''} ${isFavorite ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-red-400'
+                            className={`transition-colors ${isFavoriteUpdating ? 'opacity-50 cursor-not-allowed' : ''
+                                } ${isFavorite
+                                    ? 'text-red-500 hover:text-red-600'
+                                    : 'text-gray-400 hover:text-red-400'
                                 }`}
                         >
                             <FaHeart size={20} className={isFavorite ? 'fill-current' : ''} />

@@ -32,6 +32,7 @@ export async function GET() {
             endDate: programme.endDate,
             voyageurs: programme.voyageurs,
             programme: programme.programme,
+            imageUrl: programme.imageUrl,
             isDone: programme.isDone,
             createdAt: programme.createdAt,
             // Calculer la durée en jours

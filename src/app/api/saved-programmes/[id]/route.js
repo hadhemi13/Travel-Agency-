@@ -42,6 +42,7 @@ export async function GET(request, { params }) {
                 endDate: programme.endDate,
                 voyageurs: programme.voyageurs,
                 programme: programme.programme,
+                imageUrl: programme.imageUrl,
                 isCustom: programme.isCustom || false,
                 customPrompt: programme.customPrompt || null,
                 parentId: programme.parentId || null,
@@ -74,6 +75,7 @@ export async function GET(request, { params }) {
                 endDate: programmeVoyage.endDate,
                 voyageurs: programmeVoyage.voyageurs,
                 programme: programmeVoyage.programme,
+                imageUrl: programmeVoyage.imageUrl,
                 isCustom: false,
                 customPrompt: null,
                 parentId: null,
@@ -141,7 +143,8 @@ export async function PUT(request, { params }) {
                 ...(startDate && { startDate: new Date(startDate) }),
                 ...(endDate && { endDate: new Date(endDate) }),
                 ...(voyageurs && { voyageurs }),
-                ...(programme && { programme })
+                ...(programme && { programme }),
+                ...(image && { image })
             }
         });
 
@@ -154,7 +157,9 @@ export async function PUT(request, { params }) {
                 title: updatedProgramme.title,
                 destinationName: updatedProgramme.destinationName,
                 type: updatedProgramme.type,
-                budget: updatedProgramme.budget
+                budget: updatedProgramme.budget,
+                image: updatedProgramme.image
+
             }
         });
 

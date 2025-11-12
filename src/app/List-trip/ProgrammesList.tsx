@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import TripCard from './TripCard';
 import { PlaceType } from './Type';
 import { BsBuilding, BsAirplane, BsMap, BsHeart } from 'react-icons/bs';
+import { generateTravelImageUrl } from '@/lib/imageGenerator';
 
 interface ProgrammeData {
     id: string;
@@ -17,6 +18,7 @@ interface ProgrammeData {
     isDone: boolean;
     createdAt: string;
     duration: number;
+    imageUrl?: string | null;
 }
 
 interface ProgrammesListProps {
@@ -160,9 +162,11 @@ const ProgrammesList = ({ filter = "all" }: ProgrammesListProps) => {
     const tripCards: PlaceType[] = filteredProgrammes.map((programme) => {
         const Icon = getCategoryIcon(programme.type);
 
+        const imageSource = programme.imageUrl || generateTravelImageUrl(programme.destination, programme.type);
+
         return {
             name: `${programme.destination} - ${programme.type}`,
-            image: "/assets/images/bg/08.jpg", // Image par défaut
+            image: imageSource,
             category: {
                 name: programme.type,
                 icon: Icon

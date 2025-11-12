@@ -38,6 +38,7 @@ export async function GET() {
             endDate: programme.endDate,
             voyageurs: programme.voyageurs,
             programme: programme.programme,
+            imageUrl: programme.imageUrl,
             isDone: false, // Les programmes sauvegardés ne sont pas "terminés"
             isFavorite: true, // Tous les programmes sauvegardés sont des favoris
             createdAt: programme.savedAt,
@@ -78,7 +79,8 @@ export async function POST(request) {
             startDate,
             endDate,
             voyageurs,
-            programme
+            programme,
+            imageUrl
         } = await request.json();
 
         // Vérifier si le programme est déjà sauvegardé
@@ -109,7 +111,8 @@ export async function POST(request) {
                 startDate: new Date(startDate),
                 endDate: new Date(endDate),
                 voyageurs: voyageurs,
-                programme: programme
+                programme: programme,
+                imageUrl: imageUrl || null
             }
         });
 

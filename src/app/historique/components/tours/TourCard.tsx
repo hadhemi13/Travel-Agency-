@@ -176,16 +176,45 @@ const TourCard = ({ tour, onFavoriteChange }: TourCardProps) => {
                     return;
                 }
 
+                const destinationName =
+                    meta.destination ||
+                    meta.destinationName ||
+                    tour.name;
+
+                const budgetValue =
+                    typeof meta.budget === 'number'
+                        ? meta.budget
+                        : price;
+
+                const startDateIso = meta.startDate
+                    ? new Date(meta.startDate).toISOString()
+                    : new Date().toISOString();
+
+                const endDateIso = meta.endDate
+                    ? new Date(meta.endDate).toISOString()
+                    : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+
+                const voyageursCount =
+                    typeof meta.voyageurs === 'number' && !Number.isNaN(meta.voyageurs)
+                        ? meta.voyageurs
+                        : 1;
+
+                const imageUrlValue =
+                    (typeof meta.imageUrl === 'string' && meta.imageUrl.length > 0)
+                        ? meta.imageUrl
+                        : (typeof image === 'string' && image.length > 0 ? image : null);
+
                 programmePayload = {
-                    title: name,
-                    destinationName: meta.destination || tour.name,
+                    title: meta.name || name,
+                    destinationName,
                     type: meta.type || type,
-                    budget: meta.budget || price,
-                    startDate: meta.startDate || new Date().toISOString(),
-                    endDate: meta.endDate || new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString(),
-                    voyageurs: meta.voyageurs || 1,
+                    budget: budgetValue,
+                    startDate: startDateIso,
+                    endDate: endDateIso,
+                    voyageurs: voyageursCount,
                     programme: programmeArray,
-                    originalProgrammeId: meta.originalProgrammeId || meta.programmeId || null
+                    originalProgrammeId: meta.originalProgrammeId || meta.programmeId || null,
+                    imageUrl: imageUrlValue,
                 }
             }
 

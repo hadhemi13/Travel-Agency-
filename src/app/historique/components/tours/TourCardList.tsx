@@ -23,6 +23,7 @@ interface FavoriteProgramme {
     isFavorite: boolean;
     createdAt: string;
     duration: number;
+    imageUrl?: string | null;
 }
 
 interface FilterState {
@@ -144,7 +145,7 @@ const TourCardList = ({ showFavorites = false, onFavoriteChange, filters }: Tour
             activities: 1
         },
         price: favorite.budget,
-        image: "/assets/images/bg/08.jpg",
+        image: favorite.imageUrl || "/assets/images/bg/08.jpg",
         bookingReference: `FAV-${favorite.id.slice(-8).toUpperCase()}`
     }));
 

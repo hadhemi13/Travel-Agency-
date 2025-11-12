@@ -184,6 +184,13 @@ function extractDayFromPrompt(customPrompt) {
     return null;
 }
 
+function promptMentionsBudget(promptText = '') {
+    if (!promptText) return false;
+    const lowerPrompt = promptText.toLowerCase();
+    const keywords = ['budget', 'coût', 'cout', 'prix', '€', 'eur', 'euro', 'cost', 'amount'];
+    return keywords.some((keyword) => lowerPrompt.includes(keyword));
+}
+
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
@@ -285,10 +292,10 @@ INFORMATIONS DU PROGRAMME ORIGINAL :
 L'utilisateur souhaite les modifications suivantes :
 "${customPrompt}"
 
-➡️ RÈGLE FONDAMENTALE - TU DOIS ÊTRE PRÉCIS :
-🔴 NE MODIFIE QUE CE QUI EST EXPLICITEMENT DEMANDÉ dans "${customPrompt}"
-🔴 NE MODIFIE PAS les dates, le nombre de jours, ou le nombre de nuits SAUF si c'est explicitement mentionné dans la demande
-🔴 NE MODIFIE PAS les éléments qui ne sont pas mentionnés dans la demande
+ RÈGLE FONDAMENTALE - TU DOIS ÊTRE PRÉCIS :
+ NE MODIFIE QUE CE QUI EST EXPLICITEMENT DEMANDÉ dans "${customPrompt}"
+ NE MODIFIE PAS les dates, le nombre de jours, ou le nombre de nuits SAUF si c'est explicitement mentionné dans la demande
+ NE MODIFIE PAS les éléments qui ne sont pas mentionnés dans la demande
 
 ➡️ TÂCHE IMPORTANTE :
 1. Analyse attentivement UNIQUEMENT ce qui est demandé dans "${customPrompt}"
@@ -303,12 +310,18 @@ L'utilisateur souhaite les modifications suivantes :
   * "Changer le programme du jour 3" → modifie uniquement day: 3
   * "Jour 5 : remplacer par une journée plage" → modifie uniquement day: 5
 
-➡️ MODIFICATIONS DE PRIX :
-3. Si le budget est EXPLICITEMENT mentionné (ex: "budget à 800€", "réduire le budget", "augmenter le budget à 1200€"), alors :
-   - Modifie les coûts (cout) de TOUS les jours proportionnellement
-   - Le coût TOTAL du nouveau programme doit correspondre au nouveau budget
-   - Répartis le budget équitablement sur tous les jours
-   - Exemple : "budget à 800€" → somme des cout doit être ≈ 800€
+⚠️ COMPORTEMENT DU BUDGET :
+- Si l'utilisateur **ne demande pas de modifier le coût ou le budget**, garde **exactement le même budget total et les mêmes coûts journaliers**.
+- Si l'utilisateur **demande explicitement de modifier le coût, les prix ou le budget**, alors :
+  - Recalcule le budget total selon la nouvelle valeur demandée.
+  - Ajuste les coûts journaliers proportionnellement pour que la somme totale des "cout" soit égale au nouveau budget.
+  - Sinon, ne change rien au budget.
+
+Ne change pas le budget si la demande ne contient pas de mot-clé comme :
+"réduire le coût", "augmenter le budget", "changer le prix", "moins cher", "plus cher", "modifier le budget", etc.
+
+Garde le format JSON strict et assure-toi que la somme des coûts journaliers corresponde au budget total.
+
 
 ➡️ MODIFICATIONS DE NOMBRE DE NUITS/JOURS :
 4. Si le nombre de jours/nuits est EXPLICITEMENT mentionné (ex: "5 nuits", "5 jours", "changer à 5 nuits", "réduire à 5 jours"), alors :
@@ -325,11 +338,12 @@ L'utilisateur souhaite les modifications suivantes :
 6. Si rien n'est mentionné concernant les dates, le nombre de jours, ou le nombre de nuits → NE LES MODIFIE PAS, garde le même nombre de jours
 7. CONSERVE ABSOLUMENT la structure JSON exacte du format original
 
-🔴 CONTRAINTE BUDGÉTAIRE (UNIQUEMENT si le budget est mentionné dans la demande) :
-- Si le budget est explicitement modifié dans la demande, le coût TOTAL du nouveau programme doit correspondre au nouveau budget
-- Répartis le budget proportionnellement sur tous les jours
-- Chaque jour doit avoir un coût réaliste (cout)
-- Si le budget n'est PAS mentionné dans la demande, garde les coûts actuels
+🔴 CONTRAINTE BUDGÉTAIRE :
+- Si l'utilisateur NE mentionne PAS le budget, les coûts journaliers ET le budget total doivent rester STRICTEMENT identiques à l'original.
+- Ne change jamais les coûts ou le budget tant que la demande ne parle pas de prix, coût ou budget.
+- Si, et seulement si, l'utilisateur demande explicitement un changement de budget/coût, alors :
+  * Ajuste les coûts journaliers proportionnellement pour atteindre le nouveau budget total demandé.
+  * Assure-toi que les coûts restent réalistes.
 
 FORMAT STRICT REQUIS - Chaque jour DOIT avoir cette structure EXACTE :
 {
@@ -442,6 +456,8 @@ export async function POST(request) {
             }, { status: 400 });
         }
 
+        const userRequestedBudgetChange = promptMentionsBudget(customPrompt);
+
         let dayNumber = day !== undefined && day !== null ? parseInt(day, 10) : NaN;
         if (Number.isNaN(dayNumber) || dayNumber <= 0) {
             const extractedDay = extractDayFromPrompt(customPrompt);
@@ -468,6 +484,11 @@ export async function POST(request) {
         }
 
         const programmeArray = ensureProgrammeArray(originalProgramme.programme);
+        const originalCostTotal = programmeArray.reduce((sum, day) => {
+            if (!day) return sum;
+            const value = Number(day.cout);
+            return Number.isFinite(value) ? sum + value : sum;
+        }, 0);
 
         if (!programmeArray.length) {
             return NextResponse.json({
@@ -495,12 +516,29 @@ export async function POST(request) {
             }
 
             customizedDay = normalizeDay(aiResponse, dayNumber);
+
+            if (!userRequestedBudgetChange && dayToModify && dayToModify.cout !== undefined) {
+                customizedDay.cout = dayToModify.cout;
+            }
         } catch (aiError) {
             console.error('❌ Erreur IA lors de la personnalisation du jour:', aiError);
             return NextResponse.json({ error: "Réponse IA invalide" }, { status: 400 });
         }
 
-        const newProgramme = mergeCustomizedDay(programmeArray, customizedDay);
+        let newProgramme = mergeCustomizedDay(programmeArray, customizedDay);
+
+        if (!userRequestedBudgetChange) {
+            newProgramme = newProgramme.map((day) => {
+                const originalDay = programmeArray.find(
+                    (original) => Number(original?.day) === Number(day?.day)
+                );
+                if (!originalDay) return day;
+                return {
+                    ...day,
+                    ...(originalDay.cout !== undefined ? { cout: originalDay.cout } : {}),
+                };
+            });
+        }
 
         const computedBudget = newProgramme.reduce((sum, day) => {
             if (!day) return sum;
@@ -508,7 +546,35 @@ export async function POST(request) {
             return Number.isFinite(coutValue) ? sum + coutValue : sum;
         }, 0);
 
-        const finalBudget = computedBudget > 0 ? computedBudget : originalProgramme.budget;
+        const costsHaveChanged = Math.abs(computedBudget - originalCostTotal) > 0.01;
+
+        let baseBudget = originalProgramme.budget;
+        if (!userRequestedBudgetChange) {
+            if (originalProgramme.originalProgrammeId) {
+                const sourceProgramme =
+                    (await prisma.programmesVoyage.findUnique({
+                        where: { id: originalProgramme.originalProgrammeId }
+                    })) ||
+                    (await prisma.savedProgramme.findUnique({
+                        where: { id: originalProgramme.originalProgrammeId }
+                    }));
+
+                if (sourceProgramme?.budget) {
+                    baseBudget = sourceProgramme.budget;
+                }
+            } else if (originalProgramme.parentId) {
+                const parentProgramme = await prisma.savedProgramme.findUnique({
+                    where: { id: originalProgramme.parentId }
+                });
+                if (parentProgramme?.budget) {
+                    baseBudget = parentProgramme.budget;
+                }
+            }
+        }
+
+        const finalBudget = userRequestedBudgetChange
+            ? (computedBudget > 0 ? computedBudget : (baseBudget ?? originalProgramme.budget))
+            : (baseBudget ?? originalProgramme.budget);
 
         const customizedSavedProgramme = await prisma.savedProgramme.create({
             data: {
@@ -523,6 +589,7 @@ export async function POST(request) {
                 endDate: originalProgramme.endDate,
                 voyageurs: originalProgramme.voyageurs,
                 programme: newProgramme,
+                imageUrl: originalProgramme.imageUrl,
                 isCustom: true,
                 customPrompt: customPrompt,
                 parentId: originalProgramme.id
@@ -549,7 +616,8 @@ export async function POST(request) {
                 customPrompt: customizedSavedProgramme.customPrompt,
                 parentId: customizedSavedProgramme.parentId,
                 originalProgrammeId: customizedSavedProgramme.originalProgrammeId,
-                programme: customizedSavedProgramme.programme
+                programme: customizedSavedProgramme.programme,
+                imageUrl: customizedSavedProgramme.imageUrl
             }
         });
 
