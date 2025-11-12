@@ -1,7 +1,8 @@
 'use client'
 import { ProgramImage } from "@/components/ProgramImage";
-import { BsArrowRight, BsCheckLg, BsXLg } from "react-icons/bs";
+import { BsCheckLg, BsXLg } from "react-icons/bs";
 import { FaPlus, FaStar, FaTrophy } from "react-icons/fa";
+import { useEffect, useMemo, useState } from "react";
 
 const currency = "€";
 
@@ -17,10 +18,23 @@ const renderStars = (count: number) => {
 
 interface OurListingsProps {
   compareListings: any[];
+  optimizedProgram?: any | null;
 }
 
-const OurListings = ({ compareListings }: OurListingsProps) => {
-  if (!compareListings || compareListings.length === 0) {
+const OurListings = ({ compareListings, optimizedProgram }: OurListingsProps) => {
+  const [displayedListings, setDisplayedListings] = useState<any[]>([]);
+  const [hasOptimizedProgram, setHasOptimizedProgram] = useState(false);
+
+  useEffect(() => {
+    setDisplayedListings(recalculateWinners(compareListings));
+    setHasOptimizedProgram(false);
+  }, [compareListings]);
+
+  const canAddOptimizedProgram = useMemo(() => {
+    return Boolean(optimizedProgram) && !hasOptimizedProgram;
+  }, [optimizedProgram, hasOptimizedProgram]);
+
+  if (!displayedListings || displayedListings.length === 0) {
     return (
       <section className="dark:bg-[#222529] bg-gray-50 py-8 md:py-12">
         <div className="container mx-auto px-3 sm:px-4">
@@ -33,6 +47,106 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
       </section>
     );
   }
+
+  function recalculateWinners(programs: any[]) {
+    if (!programs || programs.length === 0) {
+      return [];
+    }
+
+    const cloned = programs.map((program) => {
+      const metrics = program.metrics || {};
+      return {
+        ...program,
+        metrics: {
+          ...metrics,
+          totalCost: metrics.totalCost ? { ...metrics.totalCost, isWinner: false } : null,
+          avgCostPerDay: metrics.avgCostPerDay ? { ...metrics.avgCostPerDay, isWinner: false } : null,
+          hotel: metrics.hotel ? { ...metrics.hotel, isWinner: false } : null,
+          numberOfDays: metrics.numberOfDays ? { ...metrics.numberOfDays, isWinner: false } : null,
+          totalActivities: metrics.totalActivities ? { ...metrics.totalActivities, isWinner: false } : null,
+          totalDistance: metrics.totalDistance ? { ...metrics.totalDistance, isWinner: false } : null,
+          activityDiversity: metrics.activityDiversity ? { ...metrics.activityDiversity, isWinner: false } : null,
+          avgIntensity: metrics.avgIntensity ? { ...metrics.avgIntensity, isWinner: false } : null,
+          valueForMoney: metrics.valueForMoney ? { ...metrics.valueForMoney, isWinner: false } : null
+        }
+      };
+    });
+
+    const minCost = Math.min(
+      ...cloned.map((p) => p.metrics?.totalCost?.numericValue ?? Number.POSITIVE_INFINITY)
+    );
+    cloned.forEach((p) => {
+      if (p.metrics?.totalCost && p.metrics.totalCost.numericValue === minCost) {
+        p.metrics.totalCost.isWinner = true;
+      }
+    });
+
+    const minAvgCost = Math.min(
+      ...cloned.map((p) => p.metrics?.avgCostPerDay?.numericValue ?? Number.POSITIVE_INFINITY)
+    );
+    cloned.forEach((p) => {
+      if (
+        p.metrics?.avgCostPerDay &&
+        p.metrics.avgCostPerDay.numericValue === minAvgCost
+      ) {
+        p.metrics.avgCostPerDay.isWinner = true;
+      }
+    });
+
+    const higherIsBetter = ["numberOfDays", "totalActivities", "activityDiversity"];
+    higherIsBetter.forEach((metricKey) => {
+      const maxValue = Math.max(
+        ...cloned.map((p) => p.metrics?.[metricKey]?.numericValue ?? Number.NEGATIVE_INFINITY)
+      );
+      cloned.forEach((p) => {
+        if (
+          p.metrics?.[metricKey] &&
+          p.metrics[metricKey].numericValue === maxValue &&
+          maxValue !== Number.NEGATIVE_INFINITY
+        ) {
+          p.metrics[metricKey].isWinner = true;
+        }
+      });
+    });
+
+    const maxValueForMoney = Math.max(
+      ...cloned.map((p) => p.metrics?.valueForMoney?.score ?? Number.NEGATIVE_INFINITY)
+    );
+    cloned.forEach((p) => {
+      if (
+        p.metrics?.valueForMoney &&
+        p.metrics.valueForMoney.score === maxValueForMoney &&
+        maxValueForMoney !== Number.NEGATIVE_INFINITY
+      ) {
+        p.metrics.valueForMoney.isWinner = true;
+      }
+    });
+
+    const maxStars = Math.max(
+      ...cloned.map((p) => p.metrics?.hotel?.stars ?? Number.NEGATIVE_INFINITY)
+    );
+    cloned.forEach((p) => {
+      if (
+        p.metrics?.hotel &&
+        p.metrics.hotel.stars === maxStars &&
+        maxStars !== Number.NEGATIVE_INFINITY
+      ) {
+        p.metrics.hotel.isWinner = true;
+      }
+    });
+
+    return cloned;
+  }
+
+  const handleAddOptimizedProgram = () => {
+    if (!optimizedProgram || hasOptimizedProgram) {
+      return;
+    }
+
+    const updated = recalculateWinners([...displayedListings, optimizedProgram]);
+    setDisplayedListings(updated);
+    setHasOptimizedProgram(true);
+  };
 
   return (
     <section className="dark:bg-[#222529] bg-gray-50 py-8 md:py-12">
@@ -48,7 +162,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Compare Programs
                       </p>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <th scope="col" key={idx} className="p-3 align-top">
                         <div className="bg-transparent">
                           {/* ✅ SECTION MODIFIÉE - Remplacement de <img> par <ProgramImage> */}
@@ -60,7 +174,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                             />
                           </div>
                           {/* ✅ FIN DE LA SECTION MODIFIÉE */}
-                          
+
                           <div className="px-0 pt-3 md:pt-4">
                             <span className="text-base md:text-lg font-semibold block font-['Poppins',sans-serif]">
                               <a href="#" className="text-gray-900 dark:text-white hover:text-[#6366f1] no-underline transition-colors">
@@ -86,7 +200,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Total Cost
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-700 dark:text-gray-300 font-medium">
                         {item.metrics.totalCost.value}
                         {item.metrics.totalCost.isWinner && (
@@ -103,7 +217,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Average Cost Per Day
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-700 dark:text-gray-300 font-medium">
                         {item.metrics.avgCostPerDay.value}
                         {item.metrics.avgCostPerDay.isWinner && (
@@ -120,7 +234,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Hotel
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-700 dark:text-gray-300">
                         <div className="flex flex-col gap-1">
                           <span className="font-medium">{item.metrics.hotel.value}</span>
@@ -145,7 +259,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Number of Days
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-700 dark:text-gray-300 font-medium">
                         {item.metrics.numberOfDays.value}
                       </td>
@@ -159,7 +273,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Total Activities
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-700 dark:text-gray-300 font-medium">
                         {item.metrics.totalActivities.value}
                         {item.metrics.totalActivities.isWinner && (
@@ -176,7 +290,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Total Distance Traveled
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-700 dark:text-gray-300 font-medium">
                         {item.metrics.totalDistance.value}
                         {item.metrics.totalDistance.isWinner && (
@@ -193,7 +307,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Activity Diversity
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-700 dark:text-gray-300 font-medium">
                         {item.metrics.activityDiversity.value}
                         {item.metrics.activityDiversity.isWinner && (
@@ -210,7 +324,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Average Intensity
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-700 dark:text-gray-300 font-medium">
                         {item.metrics.avgIntensity.value}
                         {item.metrics.avgIntensity.isWinner && (
@@ -227,7 +341,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Value for Money
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle text-sm md:text-base text-gray-700 dark:text-gray-300 font-medium">
                         {item.metrics.valueForMoney.value}
                         {item.metrics.valueForMoney.isWinner && (
@@ -239,7 +353,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
 
                   {/* SECTION: ACTIVITY CATEGORIES */}
                   <tr className="border-t-2 border-gray-300 dark:border-[#3a3d4a]">
-                    <th colSpan={compareListings.length + 1} className="p-3 md:p-4 text-left">
+                    <th colSpan={displayedListings.length + 1} className="p-3 md:p-4 text-left">
                       <span className="text-lg md:text-xl font-bold text-gray-900 dark:text-white font-['Poppins',sans-serif]">
                         Activity Categories
                       </span>
@@ -253,7 +367,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Cultural Activities
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle">
                         <span className={`text-xl md:text-2xl mb-0 inline-block ${item.categories.culture ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
                           {item.categories.culture ? <BsCheckLg /> : <BsXLg />}
@@ -269,7 +383,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Nature Activities
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle">
                         <span className={`text-xl md:text-2xl mb-0 inline-block ${item.categories.nature ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
                           {item.categories.nature ? <BsCheckLg /> : <BsXLg />}
@@ -285,7 +399,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Gastronomy Activities
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle">
                         <span className={`text-xl md:text-2xl mb-0 inline-block ${item.categories.gastronomy ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
                           {item.categories.gastronomy ? <BsCheckLg /> : <BsXLg />}
@@ -301,7 +415,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Adventure Activities
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle">
                         <span className={`text-xl md:text-2xl mb-0 inline-block ${item.categories.adventure ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
                           {item.categories.adventure ? <BsCheckLg /> : <BsXLg />}
@@ -317,7 +431,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Relaxation Activities
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle">
                         <span className={`text-xl md:text-2xl mb-0 inline-block ${item.categories.relaxation ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
                           {item.categories.relaxation ? <BsCheckLg /> : <BsXLg />}
@@ -333,7 +447,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Shopping
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle">
                         <span className={`text-xl md:text-2xl mb-0 inline-block ${item.categories.shopping ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
                           {item.categories.shopping ? <BsCheckLg /> : <BsXLg />}
@@ -349,7 +463,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Nightlife
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle">
                         <span className={`text-xl md:text-2xl mb-0 inline-block ${item.categories.nightlife ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
                           {item.categories.nightlife ? <BsCheckLg /> : <BsXLg />}
@@ -365,7 +479,7 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                         Sports
                       </span>
                     </th>
-                    {compareListings.map((item, idx) => (
+                    {displayedListings.map((item, idx) => (
                       <td key={idx} className="p-3 md:p-4 align-middle">
                         <span className={`text-xl md:text-2xl mb-0 inline-block ${item.categories.sports ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
                           {item.categories.sports ? <BsCheckLg /> : <BsXLg />}
@@ -376,6 +490,27 @@ const OurListings = ({ compareListings }: OurListingsProps) => {
                 </tbody>
               </table>
             </div>
+
+            {optimizedProgram && (
+              <div className="mt-8 flex flex-col items-center gap-3">
+                <button
+                  onClick={handleAddOptimizedProgram}
+                  className={`inline-flex items-center gap-3 px-6 py-3 rounded-2xl text-white font-semibold transition-all shadow-lg ${canAddOptimizedProgram
+                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
+                    : 'bg-gray-400 cursor-not-allowed'
+                    }`}
+                  disabled={!canAddOptimizedProgram}
+                >
+                  <FaPlus className="text-lg" />
+                  {hasOptimizedProgram
+                    ? 'Programme optimisé ajouté'
+                    : 'Ajouter un programme optimisé'}
+                </button>
+                <p className="text-sm text-gray-600 dark:text-gray-400 text-center max-w-xl">
+                  Combinez automatiquement les meilleurs critères (budget, activités, diversité et hébergement) pour créer un troisième programme basé sur vos comparaisons actuelles.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

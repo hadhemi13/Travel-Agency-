@@ -20,13 +20,13 @@ const CompareListing = () => {
         console.log('🔍 Fetching comparison:', comparisonId);
         const res = await fetch(`/api/comparisons/${comparisonId}`);
         const data = await res.json();
-        
+
         console.log('📦 Response:', data);
-        
+
         if (!res.ok) {
           throw new Error(data.error || 'Erreur lors du chargement');
         }
-        
+
         setComparison(data.comparison);
       } catch (err: any) {
         console.error('❌ Erreur:', err);
@@ -101,14 +101,17 @@ const CompareListing = () => {
       <TopNavBar />
       <main className="pt-12 md:pt-16 bg-white dark:bg-[#222529]">
         <Hero />
-            {/* Tableau de comparaison */}
-        <OurListings compareListings={comparison.programs} />
+        {/* Tableau de comparaison */}
+        <OurListings
+          compareListings={comparison.programs}
+          optimizedProgram={comparison.optimizedProgram}
+        />
         {/* 🔴 NOUVEAU : Afficher la recommandation si elle existe */}
         {comparison.recommendation && (
           <RecommendationBanner recommendation={comparison.recommendation} />
         )}
-        
-    
+
+
       </main>
       <Footer />
     </>

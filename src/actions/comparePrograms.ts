@@ -300,6 +300,165 @@ function generateSmartRecommendation(
   };
 }
 
+type MetricPreference = 'lower' | 'higher' | 'valueScore' | 'hotelStars';
+
+function cloneMetric(metric: any = {}) {
+  return JSON.parse(JSON.stringify(metric || {}));
+}
+
+function pickBestMetric(
+  metric1: any,
+  metric2: any,
+  preference: MetricPreference
+) {
+  const cloned1 = cloneMetric(metric1);
+  const cloned2 = cloneMetric(metric2);
+
+  if (!metric1 && !metric2) {
+    return { metric: {}, winner: 0 };
+  }
+  if (metric1 && !metric2) {
+    cloned1.isWinner = true;
+    return { metric: cloned1, winner: 1 };
+  }
+  if (!metric1 && metric2) {
+    cloned2.isWinner = true;
+    return { metric: cloned2, winner: 2 };
+  }
+
+  let value1 = 0;
+  let value2 = 0;
+
+  switch (preference) {
+    case 'lower':
+      value1 = metric1.numericValue ?? Number.POSITIVE_INFINITY;
+      value2 = metric2.numericValue ?? Number.POSITIVE_INFINITY;
+      break;
+    case 'higher':
+      value1 = metric1.numericValue ?? Number.NEGATIVE_INFINITY;
+      value2 = metric2.numericValue ?? Number.NEGATIVE_INFINITY;
+      break;
+    case 'valueScore':
+      value1 = metric1.score ?? Number.NEGATIVE_INFINITY;
+      value2 = metric2.score ?? Number.NEGATIVE_INFINITY;
+      break;
+    case 'hotelStars':
+      value1 = metric1.stars ?? 0;
+      value2 = metric2.stars ?? 0;
+      break;
+  }
+
+  let winner = 1;
+  let selected = cloned1;
+
+  if (
+    (preference === 'lower' && value2 < value1) ||
+    (preference === 'higher' && value2 > value1) ||
+    (preference === 'valueScore' && value2 > value1) ||
+    (preference === 'hotelStars' && value2 > value1)
+  ) {
+    winner = 2;
+    selected = cloned2;
+  } else if (
+    (preference === 'lower' && value2 === value1 && value2 < value1) ||
+    (['higher', 'valueScore', 'hotelStars'].includes(preference) && value2 === value1 && value2 > value1)
+  ) {
+    winner = 2;
+    selected = cloned2;
+  }
+
+  selected.isWinner = true;
+  return { metric: selected, winner };
+}
+
+function createOptimizedProgram(
+  program1Data: ProgramData,
+  program2Data: ProgramData,
+  metrics1: any,
+  metrics2: any,
+  categories1: any,
+  categories2: any,
+  program1Image: string | null,
+  program2Image: string | null,
+  recommendation: { bestProgram: number }
+) {
+  const winnerCount: Record<number, number> = { 1: 0, 2: 0 };
+
+  const getMetric = (
+    key: string,
+    preference: MetricPreference
+  ) => {
+    const { metric, winner } = pickBestMetric(metrics1[key], metrics2[key], preference);
+    if (winner) {
+      winnerCount[winner] = (winnerCount[winner] || 0) + 1;
+    }
+    return { metric, winner };
+  };
+
+  const totalCost = getMetric('totalCost', 'lower');
+  const avgCostPerDay = getMetric('avgCostPerDay', 'lower');
+  const numberOfDays = getMetric('numberOfDays', 'higher');
+  const totalActivities = getMetric('totalActivities', 'higher');
+  const activityDiversity = getMetric('activityDiversity', 'higher');
+  const valueForMoney = getMetric('valueForMoney', 'valueScore');
+  const hotel = getMetric('hotel', 'hotelStars');
+  const avgIntensity = getMetric('avgIntensity', 'lower');
+  const totalDistance = getMetric('totalDistance', 'lower');
+
+  let dominantProgram = recommendation.bestProgram;
+  if (!dominantProgram || dominantProgram === 0) {
+    dominantProgram = winnerCount[1] >= winnerCount[2] ? 1 : 2;
+  }
+
+  const baseMetrics = dominantProgram === 1 ? metrics1 : metrics2;
+  const baseCategories = dominantProgram === 1 ? categories1 : categories2;
+  const baseData = dominantProgram === 1 ? program1Data : program2Data;
+  const baseImage = dominantProgram === 1 ? program1Image : program2Image;
+
+  const mergedCategories = Object.keys({
+    ...categories1,
+    ...categories2
+  }).reduce((acc: Record<string, boolean>, key) => {
+    acc[key] = Boolean(categories1[key] || categories2[key]);
+    return acc;
+  }, {});
+
+  const metrics = {
+    totalCost: totalCost.metric,
+    avgCostPerDay: avgCostPerDay.metric,
+    hotel: hotel.metric,
+    numberOfDays: numberOfDays.metric,
+    totalActivities: totalActivities.metric,
+    totalDistance: totalDistance.metric?.numericValue !== undefined
+      ? totalDistance.metric
+      : cloneMetric(baseMetrics.totalDistance),
+    activityDiversity: activityDiversity.metric,
+    avgIntensity: avgIntensity.metric?.numericValue !== undefined
+      ? avgIntensity.metric
+      : cloneMetric(baseMetrics.avgIntensity),
+    valueForMoney: valueForMoney.metric?.score !== undefined
+      ? valueForMoney.metric
+      : cloneMetric(baseMetrics.valueForMoney)
+  };
+
+  const optimizedProgram = {
+    id: null,
+    name: `${baseData.destination} - Programme optimisé`,
+    image: baseImage,
+    totalCost: metrics.totalCost.numericValue ?? baseMetrics.totalCost.numericValue,
+    numberOfDays: metrics.numberOfDays.numericValue ?? baseMetrics.numberOfDays.numericValue,
+    rawData: baseData.programme,
+    metrics,
+    categories: mergedCategories,
+    origin: {
+      dominantProgram,
+      winnerCount
+    }
+  };
+
+  return optimizedProgram;
+}
+
 export async function comparePrograms(
   program1Data: ProgramData,
   program2Data: ProgramData
@@ -336,30 +495,30 @@ export async function comparePrograms(
     console.log('🏷️ Extraction des catégories...');
     const program1Categories = extractCategories(program1Data.programme);
     const program2Categories = extractCategories(program2Data.programme);
- console.log('🎨 Génération des images...');
+    console.log('🎨 Génération des images...');
 
-// ✅ PASSER 1 pour le premier programme
-const program1Image = generateComparisonImage(
-  program1Data.destination,
-  program1Data.type,
-  program1Metrics,
-  program1Categories,
-  1 // ✅ Premier programme
-);
+    // ✅ PASSER 1 pour le premier programme
+    const program1Image = generateComparisonImage(
+      program1Data.destination,
+      program1Data.type,
+      program1Metrics,
+      program1Categories,
+      1 // ✅ Premier programme
+    );
 
-// ✅ PASSER 2 pour le deuxième programme
-const program2Image = generateComparisonImage(
-  program2Data.destination,
-  program2Data.type,
-  program2Metrics,
-  program2Categories,
-  2 // ✅ Deuxième programme
-);
+    // ✅ PASSER 2 pour le deuxième programme
+    const program2Image = generateComparisonImage(
+      program2Data.destination,
+      program2Data.type,
+      program2Metrics,
+      program2Categories,
+      2 // ✅ Deuxième programme
+    );
 
-console.log('✅ Images générées:', {
-  program1: program1Image,
-  program2: program2Image
-});
+    console.log('✅ Images générées:', {
+      program1: program1Image,
+      program2: program2Image
+    });
     // 5. 🔴 NOUVEAU : Générer la recommandation intelligente
     console.log('🤖 Génération de la recommandation...');
     const smartRecommendation = generateSmartRecommendation(
@@ -372,14 +531,27 @@ console.log('✅ Images générées:', {
     );
     console.log('✅ Recommandation générée:', smartRecommendation.conclusion);
 
+    const optimizedProgram = createOptimizedProgram(
+      program1Data,
+      program2Data,
+      program1Metrics,
+      program2Metrics,
+      program1Categories,
+      program2Categories,
+      program1Image,
+      program2Image,
+      smartRecommendation
+    );
+    console.log('🧠 Programme optimisé généré.');
+
     // 6. Préparer les données pour MongoDB
     const programs = [
       {
         id: program1Data.supabaseId,
         name: `${program1Data.destination} - Programme 1`,
 
-   image: program1Image,
-           totalCost: program1Metrics.totalCost.numericValue,
+        image: program1Image,
+        totalCost: program1Metrics.totalCost.numericValue,
         numberOfDays: program1Metrics.numberOfDays.numericValue,
         rawData: program1Data.programme,
         metrics: program1Metrics,
@@ -388,7 +560,7 @@ console.log('✅ Images générées:', {
       {
         id: program2Data.supabaseId,
         name: `${program2Data.destination} - Programme 2`,
-         image: program2Image,
+        image: program2Image,
         totalCost: program2Metrics.totalCost.numericValue,
         numberOfDays: program2Metrics.numberOfDays.numericValue,
         rawData: program2Data.programme,
@@ -403,7 +575,8 @@ console.log('✅ Images générées:', {
       userId: userId,
       destination: program1Data.destination,
       programs: programs,  // ✅ Utiliser "programs"
-      recommendation: smartRecommendation
+      recommendation: smartRecommendation,
+      optimizedProgram
     };
 
     console.log('📝 Structure de sauvegarde:', {
@@ -423,7 +596,8 @@ console.log('✅ Images générées:', {
       success: true,
       comparisonId: comparison._id.toString(),
       message: 'Comparaison créée avec succès',
-      recommendation: smartRecommendation // 🔴 Retourner aussi la recommandation
+      recommendation: smartRecommendation, // 🔴 Retourner aussi la recommandation
+      optimizedProgram
     };
 
   } catch (error: any) {

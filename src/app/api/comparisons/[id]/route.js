@@ -63,6 +63,7 @@ export async function GET(request, { params }) {
         destination: comparison.destination,
         programs: programs,
         recommendation: comparison.recommendation || null,
+        optimizedProgram: comparison.optimizedProgram || null,
         createdAt: comparison.createdAt
       }
     });
