@@ -1,19 +1,25 @@
 import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
-import { prisma } from '@/lib/prisma';
 
 export async function GET() {
     try {
-        // Récupérer tous les programmes de voyage (pour test)
+        const session = await getServerSession(authOptions);
+
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+        }
+
+        // Récupérer les programmes de l'utilisateur connecté
         const programmes = await prisma.programmesVoyage.findMany({
+            where: {
+                userId: session.user.id
+            },
             orderBy: {
                 createdAt: 'desc'
             }
         });
-
-        console.log('📊 Programmes trouvés:', programmes.length);
-        console.log('📋 Premier programme:', programmes[0]);
 
         // Transformer les données pour l'affichage
         const programmesFormatted = programmes.map(programme => ({

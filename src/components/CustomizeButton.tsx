@@ -92,42 +92,58 @@ const CustomizeButton = ({ programmeId, programmeName, onCustomize, className = 
 
             {/* Modal de personnalisation */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md">
-                        <h3 className="text-xl font-bold text-white mb-4">
-                            ✨ Personnaliser le programme
-                        </h3>
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-transparent backdrop-blur-sm"
+                    onClick={() => {
+                        if (isLoading) return
+                        setIsModalOpen(false)
+                        setCustomPrompt('')
+                    }}
+                >
+                    <div
+                        className="w-full max-w-lg rounded-3xl border border-white/15 bg-gradient-to-br from-[#141524]/95 via-[#0f101c]/95 to-[#1a1b2b]/95 p-8 shadow-[0_25px_60px_-25px_rgba(8,9,16,0.9)] ring-1 ring-purple-500/20 backdrop-blur-xl text-white"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg">
+                                <FaMagic size={20} />
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-semibold text-white">
+                                    Personnaliser le programme
+                                </h3>
+                                <p className="text-sm text-purple-200/80">
+                                    {programmeName}
+                                </p>
+                            </div>
+                        </div>
 
-                        <p className="text-gray-300 mb-4">
-                            <strong>{programmeName}</strong>
-                        </p>
-
-                        <div className="mb-4">
-                            <label className="block text-gray-300 text-sm font-medium mb-2">
-                                Décrivez vos modifications :
+                        <div className="space-y-3 mb-6">
+                            <label className="block text-sm font-semibold text-purple-100">
+                                Décrivez vos modifications
                             </label>
                             <textarea
                                 value={customPrompt}
                                 onChange={(e) => setCustomPrompt(e.target.value)}
-                                placeholder="Exemples :
+                                placeholder={`Exemples :
 • Modifier le jour 7 pour ajouter une visite de musée
 • Changer le programme du jour 3 en journée plage
 • Budget à 800€
 • Réduire à 5 nuits
-• Augmenter le budget à 1200€"
-                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                                rows={5}
+• Augmenter le budget à 1200€`}
+                                className="w-full rounded-2xl border border-purple-500/40 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-purple-100/60 shadow-inner focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-500/30 resize-none transition-all"
+                                rows={6}
                             />
-                            <div className="mt-2 text-xs text-gray-400">
-                                💡 <strong>Astuce :</strong> Vous pouvez modifier un jour spécifique (ex: "jour 7"), le budget total, ou le nombre de nuits.
+                            <div className="rounded-2xl border border-dashed border-purple-500/40 bg-purple-500/10 px-4 py-3 text-xs text-purple-100">
+                                💡 <strong>Astuce :</strong> Ciblez un jour spécifique (ex: « jour 7 »), ajustez le budget total ou modifiez le nombre de nuits.
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-col gap-3 sm:flex-row">
                             <button
                                 onClick={handleCustomize}
                                 disabled={!customPrompt.trim() || isLoading}
-                                className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold px-4 py-2 rounded-lg transition-colors"
+                                className="flex-1 rounded-2xl bg-gradient-to-r from-purple-600 to-purple-500 px-5 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl disabled:cursor-not-allowed disabled:from-gray-500/60 disabled:to-gray-500/60 disabled:text-gray-300/60 disabled:shadow-none"
                             >
                                 {isLoading ? 'Personnalisation...' : 'Personnaliser avec l\'IA'}
                             </button>
@@ -137,7 +153,7 @@ const CustomizeButton = ({ programmeId, programmeName, onCustomize, className = 
                                     setCustomPrompt('')
                                 }}
                                 disabled={isLoading}
-                                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-500 text-white font-semibold rounded-lg transition-colors"
+                                className="rounded-2xl border border-white/15 px-5 py-3 text-sm font-semibold text-purple-100 transition-all hover:border-purple-300/40 hover:text-white disabled:cursor-not-allowed disabled:text-purple-200/40"
                             >
                                 Annuler
                             </button>

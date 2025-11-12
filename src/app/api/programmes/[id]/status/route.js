@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
 
-export async function PATCH(request, { params }) {
+export async function PATCH(request, context) {
     try {
         const session = await getServerSession(authOptions);
         
@@ -11,7 +11,8 @@ export async function PATCH(request, { params }) {
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
 
-        const { id } = params;
+        const params = await context.params;
+        const id = params.id;
         const { isDone } = await request.json();
 
         // Vérifier que le programme appartient à l'utilisateur
