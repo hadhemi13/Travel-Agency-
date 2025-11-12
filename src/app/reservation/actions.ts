@@ -18,6 +18,7 @@ interface CreateReservationInput {
     guests: GuestInfo[];
     selectedRoomId: string;
     selectedMeal: string;
+    paymentStatus : string
 }
 
 export async function createReservation(data: CreateReservationInput) {
@@ -25,7 +26,7 @@ export async function createReservation(data: CreateReservationInput) {
 
     const reservation = new Reservation({
         ...data,
-        paymentStatus: "pending", // par défaut non payé
+        paymentStatus: data.paymentStatus || "pending" // par défaut non payé
     });
 
     const savedReservation = await reservation.save();

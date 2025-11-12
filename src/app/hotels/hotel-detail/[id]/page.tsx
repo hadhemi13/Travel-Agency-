@@ -19,6 +19,7 @@ import {
 } from "react-icons/bs";
 // import router from "next/router";
 import { useRouter } from "next/navigation";
+import ReviewSummary from "@/components/hotels/ReviewSummary";
 
 // Updated Type definitions for hotel details based on the API response structure
 interface PriceAmount {
@@ -558,7 +559,7 @@ export default function HotelDetail() {
               View on Booking.com
             </a>
           </div>
-
+          <ReviewSummary hotelId={id as string} hotelName={hotel.hotel_name} />
           {/* Highlights / Facilities */}
           <div className="bg-[#191b1d] rounded-xl shadow-md p-6 mb-8">
             <h2 className="text-2xl font-bold mb-4 flex items-center text-white">
