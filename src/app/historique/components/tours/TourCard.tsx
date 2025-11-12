@@ -450,6 +450,7 @@ const TourCard = ({ tour, onFavoriteChange }: TourCardProps) => {
                                     type="text"
                                     value={shareUrl}
                                     readOnly
+                                    aria-label="Lien de partage"
                                     className="flex-1 bg-gray-700 text-white p-2 rounded text-xs"
                                 />
                                 <button
