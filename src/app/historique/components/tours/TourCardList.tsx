@@ -132,6 +132,7 @@ const TourCardList = ({ showFavorites = false, onFavoriteChange, filters }: Tour
         id: parseInt(favorite.id.slice(-6), 16), // ID numérique pour l'affichage
         originalId: favorite.id, // ID UUID original pour la navigation
         programmeId: favorite.programmeId, // ID du programme original
+        isFavorite: true,
         name: favorite.name,
         bookingDate: formatDate(favorite.createdAt),
         travelDate: formatDateRange(favorite.startDate, favorite.endDate),

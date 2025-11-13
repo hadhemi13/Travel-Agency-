@@ -28,17 +28,19 @@ interface TourCardProps {
 
 const TourCard = ({ tour, onFavoriteChange }: TourCardProps) => {
     const { benefits, travelDate, bookingDate, days, name, nights, price, type, status, image, bookingReference } = tour
-    const [isFavorite, setIsFavorite] = useState(false)
+    const [isFavorite, setIsFavorite] = useState<boolean>(tour.isFavorite ?? false)
     const [isFavoriteUpdating, setIsFavoriteUpdating] = useState(false)
     const [showShareButtons, setShowShareButtons] = useState(false)
     const [shareUrl, setShareUrl] = useState('')
 
     // Vérifier si le programme est déjà en favoris au chargement
     useEffect(() => {
-        if (tour.programmeId || tour.originalId) {
+        if (typeof tour.isFavorite === 'boolean') {
+            setIsFavorite(tour.isFavorite)
+        } else if (tour.programmeId || tour.originalId) {
             checkIfFavorite()
         }
-    }, [tour.programmeId, tour.originalId])
+    }, [tour.programmeId, tour.originalId, tour.isFavorite])
 
     const checkIfFavorite = async () => {
         const programmeId = tour.programmeId || tour.originalId

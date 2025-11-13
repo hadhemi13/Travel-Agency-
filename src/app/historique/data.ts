@@ -4,6 +4,7 @@ export type TourHistoryType = {
     id: number;
     originalId?: string; // ID UUID original pour la navigation
     programmeId?: string; // ID du programme original
+    isFavorite?: boolean;
     name: string;
     bookingDate: string;
     travelDate: string;

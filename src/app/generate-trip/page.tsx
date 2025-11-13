@@ -34,9 +34,96 @@ const TravelSimulator = () => {
     'Barcelone, Espagne',
     'Bali, Indonésie',
     'Istanbul, Turquie',
-    'Amsterdam, Pays-Bas'
-  ]
-
+    'Amsterdam, Pays-Bas',
+    'Sydney, Australie',
+    'Rio de Janeiro, Brésil',
+    'Moscou, Russie',
+    'Le Caire, Égypte',
+    'Bangkok, Thaïlande',
+    'Cape Town, Afrique du Sud',
+    'Singapour',
+    'Séoul, Corée du Sud',
+    'Lisbonne, Portugal',
+    'Vancouver, Canada',
+    'Los Angeles, USA',
+    'Miami, USA',
+    'Chicago, USA',
+    'San Francisco, USA',
+    'Las Vegas, USA',
+    'Mexico City, Mexique',
+    'Buenos Aires, Argentine',
+    'Santiago, Chili',
+    'Lima, Pérou',
+    'Quito, Équateur',
+    'Bogotá, Colombie',
+    'Karachi, Pakistan',
+    'Mumbai, Inde',
+    'Delhi, Inde',
+    'Kolkata, Inde',
+    'Chennai, Inde',
+    'Bangladesh, Dhaka',
+    'Kathmandu, Népal',
+    'Hanoï, Vietnam',
+    'Ho Chi Minh, Vietnam',
+    'Manille, Philippines',
+    'Jakarta, Indonésie',
+    'Singapour',
+    'Kuala Lumpur, Malaisie',
+    'Brisbane, Australie',
+    'Melbourne, Australie',
+    'Perth, Australie',
+    'Auckland, Nouvelle-Zélande',
+    'Wellington, Nouvelle-Zélande',
+    'Oslo, Norvège',
+    'Stockholm, Suède',
+    'Copenhague, Danemark',
+    'Helsinki, Finlande',
+    'Reykjavik, Islande',
+    'Berlin, Allemagne',
+    'Munich, Allemagne',
+    'Vienne, Autriche',
+    'Zurich, Suisse',
+    'Genève, Suisse',
+    'Prague, République Tchèque',
+    'Budapest, Hongrie',
+    'Athènes, Grèce',
+    'Santorin, Grèce',
+    'Dubrovnik, Croatie',
+    'Split, Croatie',
+    'Krakow, Pologne',
+    'Warsaw, Pologne',
+    'Bruxelles, Belgique',
+    'Anvers, Belgique',
+    'Edimbourg, Royaume-Uni',
+    'Glasgow, Royaume-Uni',
+    'Belfast, Royaume-Uni',
+    'Dublin, Irlande',
+    'Reims, France',
+    'Lyon, France',
+    'Marseille, France',
+    'Nice, France',
+    'Toulouse, France',
+    'Strasbourg, France',
+    'Monaco',
+    'Malaga, Espagne',
+    'Seville, Espagne',
+    'Valencia, Espagne',
+    'Granada, Espagne',
+    'Cordoba, Espagne',
+    'Lisbonne, Portugal',
+    'Porto, Portugal',
+    'Madeira, Portugal',
+    'Funchal, Portugal',
+    'Casablanca, Maroc',
+    'Marrakech, Maroc',
+    'Fès, Maroc',
+    'Agadir, Maroc',
+    'Tunis, Tunisie',
+    'Sousse, Tunisie',
+    'Monastir, Tunisie',
+    'Alger, Algérie',
+    'Oran, Algérie'
+  ];
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [filteredSuggestions, setFilteredSuggestions] = useState(suggestedDestinations)
 
@@ -66,7 +153,7 @@ const TravelSimulator = () => {
 
   const handleDestinationChange = (value: string) => {
     setDestination(value)
-    
+
     // Filter suggestions based on input
     if (value.trim()) {
       const filtered = suggestedDestinations.filter(dest =>
@@ -80,9 +167,14 @@ const TravelSimulator = () => {
     }
   }
 
-  const handleSuggestionClick = (suggestion: string) => {
-    setDestination(suggestion)
+  const selectDestination = (value: string) => {
+    setDestination(value)
+    setFilteredSuggestions(suggestedDestinations)
     setShowSuggestions(false)
+  }
+
+  const handleSuggestionClick = (suggestion: string) => {
+    selectDestination(suggestion)
   }
 
   const handleSimuler = () => {
@@ -106,15 +198,13 @@ const TravelSimulator = () => {
     router.push(`/trip-results?${query}`)
   }
 
-  const inputClass = `w-full h-14 px-4 text-base ${
-    darkMode ? 'text-white placeholder-gray-300 bg-gray-700 border-gray-600' : 'text-gray-900 placeholder-gray-700 bg-white border-gray-300'
-  } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 backdrop-blur-sm`
+  const inputClass = `w-full h-14 px-4 text-base ${darkMode ? 'text-white placeholder-gray-300 bg-gray-700 border-gray-600' : 'text-gray-900 placeholder-gray-700 bg-white border-gray-300'
+    } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 backdrop-blur-sm`
 
   const boutonClass = (selection: string, valeur: string) =>
-    `px-4 py-2 rounded-full border transition-all duration-200 m-1 ${
-      selection === valeur
-        ? 'bg-purple-600 text-white border-purple-600'
-        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
+    `px-4 py-2 rounded-full border transition-all duration-200 m-1 ${selection === valeur
+      ? 'bg-purple-600 text-white border-purple-600'
+      : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
     }`
 
   return (
@@ -195,20 +285,22 @@ const TravelSimulator = () => {
 
                     {/* Suggestions Dropdown */}
                     {showSuggestions && filteredSuggestions.length > 0 && (
-                      <div className={`absolute z-50 w-full mt-2 rounded-xl shadow-lg overflow-hidden ${
-                        darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
-                      }`}>
+                      <div className={`absolute z-50 w-full mt-2 rounded-xl shadow-lg overflow-hidden ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
+                        }`}>
                         <div className="max-h-60 overflow-y-auto">
                           {filteredSuggestions.map((suggestion, idx) => (
                             <button
                               key={idx}
                               type="button"
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                selectDestination(suggestion)
+                              }}
                               onClick={() => handleSuggestionClick(suggestion)}
-                              className={`w-full text-left px-4 py-3 transition-colors ${
-                                darkMode 
-                                  ? 'hover:bg-gray-700 text-gray-200' 
-                                  : 'hover:bg-gray-100 text-gray-800'
-                              } border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} last:border-b-0`}
+                              className={`w-full text-left px-4 py-3 transition-colors ${darkMode
+                                ? 'hover:bg-gray-700 text-gray-200'
+                                : 'hover:bg-gray-100 text-gray-800'
+                                } border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} last:border-b-0`}
                             >
                               <div className="flex items-center gap-2">
                                 <BsGeoAlt className="text-purple-500" size={16} />

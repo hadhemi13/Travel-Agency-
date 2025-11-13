@@ -3,6 +3,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const isValidUuid = (value) => typeof value === 'string' && UUID_REGEX.test(value);
+
 export async function POST(request) {
   try {
     const session = await getServerSession(authOptions);
@@ -176,17 +180,30 @@ export async function PUT(request) {
       originalHotelId
     } = body;
 
-    if (!id) {
+    if (!id && !hotel_id) {
       return NextResponse.json({ error: 'ID de l\'hôtel requis' }, { status: 400 });
     }
 
     // Vérifier d'abord que l'hôtel appartient à l'utilisateur
-    const existingHotel = await prisma.savedHotel.findFirst({
-      where: {
-        id: id,
-        userId: session.user.id
-      }
-    });
+    let existingHotel = null;
+
+    if (id && isValidUuid(id)) {
+      existingHotel = await prisma.savedHotel.findFirst({
+        where: {
+          id: id,
+          userId: session.user.id
+        }
+      });
+    }
+
+    if (!existingHotel && hotel_id) {
+      existingHotel = await prisma.savedHotel.findFirst({
+        where: {
+          hotelId: hotel_id,
+          userId: session.user.id
+        }
+      });
+    }
 
     if (!existingHotel) {
       return NextResponse.json({ error: 'Hôtel non trouvé ou non autorisé' }, { status: 404 });
@@ -225,7 +242,7 @@ export async function PUT(request) {
     // Mettre à jour l'hôtel sauvegardé
     const updatedHotel = await prisma.savedHotel.update({
       where: {
-        id: id
+        id: existingHotel.id
       },
       data: updateData
     });
